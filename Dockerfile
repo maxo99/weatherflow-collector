@@ -16,4 +16,4 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY . .
 
 # Run your Python script
-CMD ["python3", "./weatherflow-collector.py"]
+CMD ["python3", "./src/weatherflow-collector.py"]
