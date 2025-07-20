@@ -164,7 +164,17 @@ class InfluxDBStorage:
 
                 # If timestamp is not provided, use current time
                 if timestamp is None:
-                    timestamp = int(time.time())
+                    print("Timestamp not provided, using current time")
+                    timestamp = datetime.now()  # Current time in epoch seconds
+                    logger_InfluxDBStorage.debug(
+                        "Timestamp not provided, using current time"
+                    )
+                elif isinstance(timestamp, (int, float)):
+                    # If timestamp is an integer or float, convert it to a datetime object
+                    timestamp = datetime.fromtimestamp(timestamp)
+                    logger_InfluxDBStorage.debug(
+                        f"Timestamp provided as epoch seconds: {timestamp}"
+                    ) 
 
                 # Sort tags for consistency
                 sorted_tags = dict(sorted(tags.items()))
@@ -275,10 +285,17 @@ class InfluxDBStorage:
             # logger_InfluxDBStorage.debug(f"Normalized Fields: {fields}")
 
             if timestamp is None:
-                timestamp = int(time.time())  # Current time in epoch seconds
+                print("Timestamp not provided, using current time")
+                timestamp = datetime.now()  # Current time in epoch seconds
                 logger_InfluxDBStorage.debug(
                     "Timestamp not provided, using current time"
                 )
+            elif isinstance(timestamp, (int, float)):
+                # If timestamp is an integer or float, convert it to a datetime object
+                timestamp = datetime.fromtimestamp(timestamp)
+                logger_InfluxDBStorage.debug(
+                    f"Timestamp provided as epoch seconds: {timestamp}"
+                ) 
 
             # Sort tags for consistency
             sorted_tags = dict(sorted(tags.items()))
