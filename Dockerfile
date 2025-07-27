@@ -13,9 +13,6 @@ RUN apt update && apt install -y \
     libatlas-base-dev \ 
     libblas-dev \ 
     liblapack-dev && \
-    # ninja-build \
-    # meson \
-    # cython3 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY src /app/
