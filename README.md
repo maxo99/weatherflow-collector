@@ -391,9 +391,9 @@ The export interval for InfluxDB data structure tracking (default: 60).
 
 The save directory for InfluxDB data structure tracking (default: "logs").
 
-````WEATHERFLOW_COLLECTOR_EXPORT_COLLECTOR_STALE_SEGMENT_DAYS````
+<!-- ````WEATHERFLOW_COLLECTOR_EXPORT_COLLECTOR_STALE_SEGMENT_DAYS````
 
-Stale segment days for export collector (default: 30).
+Stale segment days for export collector (default: 30). -->
 
 ````WEATHERFLOW_COLLECTOR_REST_EXPORT_FETCH_OBSERVATIONS_WORKERS````
 
