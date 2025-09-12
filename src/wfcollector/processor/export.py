@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from wfcollector import config, logger, utils
-from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
 
 logger_ExportProcessor = logger.get_module_logger(__name__ + ".ExportProcessor")
 
@@ -20,9 +19,7 @@ class ExportProcessor:
         self.end_date = None
         self.accumulated_data = {}
         self.failed_dates = {}  # Dictionary to track failed dates by segment
-        self.task_semaphore = asyncio.Semaphore(
-            config.WEATHERFLOW_COLLECTOR_EXPORT_CLIENT_EXPORT_TASKS
-        )
+        self.task_semaphore = asyncio.Semaphore(config.WEATHERFLOW_COLLECTOR_EXPORT_CLIENT_EXPORT_TASKS)
 
         # Ensure the base output directory exists
         os.makedirs(self.output_directory, exist_ok=True)
@@ -57,22 +54,16 @@ class ExportProcessor:
         metadata_end_date_str = date_range.get("end")
 
         if metadata_start_date_str:
-            metadata_start_date = datetime.strptime(
-                metadata_start_date_str, "%Y-%m-%d"
-            ).date()
+            metadata_start_date = datetime.strptime(metadata_start_date_str, "%Y-%m-%d").date()
             if self.start_date is None or metadata_start_date < self.start_date:
                 self.start_date = metadata_start_date
 
         if metadata_end_date_str:
-            metadata_end_date = datetime.strptime(
-                metadata_end_date_str, "%Y-%m-%d"
-            ).date()
+            metadata_end_date = datetime.strptime(metadata_end_date_str, "%Y-%m-%d").date()
             if self.end_date is None or metadata_end_date > self.end_date:
                 self.end_date = metadata_end_date
 
-        logger_ExportProcessor.debug(
-            f"Updated date range: Start - {self.start_date}, End - {self.end_date}"
-        )
+        logger_ExportProcessor.debug(f"Updated date range: Start - {self.start_date}, End - {self.end_date}")
 
     async def process_data(self, full_data):
         start_time = time.time()  # Start the timer
@@ -93,9 +84,7 @@ class ExportProcessor:
         for observation in observations:
             # Acquire a semaphore slot before creating a new task
             await self.task_semaphore.acquire()
-            task = asyncio.create_task(
-                self.process_observation(observation, ob_fields, metadata, station_info)
-            )
+            task = asyncio.create_task(self.process_observation(observation, ob_fields, metadata, station_info))
             task.add_done_callback(lambda t: self.task_semaphore.release())
             tasks.append(task)
 
@@ -106,20 +95,14 @@ class ExportProcessor:
         segment_keys = list(self.accumulated_data.keys())
         for segment_key in list(self.accumulated_data.get(station_id, {}).keys()):
             if await self.is_segment_complete(station_id, segment_key):
-                await self.export_data_for_segment(
-                    station_id, segment_key, metadata, station_info
-                )
+                await self.export_data_for_segment(station_id, segment_key, metadata, station_info)
 
         end_time = time.time()  # End the timer
         processing_duration = end_time - start_time
-        logger_ExportProcessor.debug(
-            f"Processing completed in {processing_duration} seconds."
-        )
+        logger_ExportProcessor.debug(f"Processing completed in {processing_duration} seconds.")
 
     async def process_observation(self, observation, ob_fields, metadata, station_info):
-        fields = {
-            self.field_mapping.get(k, k): v for k, v in zip(ob_fields, observation)
-        }
+        fields = {self.field_mapping.get(k, k): v for k, v in zip(ob_fields, observation)}
         fields = utils.normalize_fields(fields)
         additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(fields)
         fields.update(additional_metrics)
@@ -135,9 +118,7 @@ class ExportProcessor:
         try:
             year, month = map(int, segment_key.split("-"))
             start_of_month = datetime(year, month, 1).date()
-            end_of_month = datetime(
-                year, month, calendar.monthrange(year, month)[1]
-            ).date()
+            end_of_month = datetime(year, month, calendar.monthrange(year, month)[1]).date()
         except ValueError:
             # Handle case when segment_key is just a year
             year = int(segment_key)
@@ -145,43 +126,23 @@ class ExportProcessor:
             end_of_month = datetime(year, 12, 31).date()
 
         # Adjust the start and end dates of the segment based on the overall date range
-        start_of_segment = (
-            max(start_of_month, self.start_date) if self.start_date else start_of_month
-        )
-        end_of_segment = (
-            min(end_of_month, self.end_date) if self.end_date else end_of_month
-        )
+        start_of_segment = max(start_of_month, self.start_date) if self.start_date else start_of_month
+        end_of_segment = min(end_of_month, self.end_date) if self.end_date else end_of_month
 
         # Generate expected dates for the segment
-        expected_dates = {
-            start_of_segment + timedelta(days=i)
-            for i in range((end_of_segment - start_of_segment).days + 1)
-        }
+        expected_dates = {start_of_segment + timedelta(days=i) for i in range((end_of_segment - start_of_segment).days + 1)}
         expected_dates_str = {date.strftime("%Y-%m-%d") for date in expected_dates}
 
-        received_dates = {
-            self.extract_date(obs)
-            for obs in self.accumulated_data.get(station_id, {}).get(segment_key, [])
-        }
-        failed_dates_for_segment = self.failed_dates.get(station_id, {}).get(
-            segment_key, set()
-        )
+        received_dates = {self.extract_date(obs) for obs in self.accumulated_data.get(station_id, {}).get(segment_key, [])}
+        failed_dates_for_segment = self.failed_dates.get(station_id, {}).get(segment_key, set())
 
-        all_dates_accounted_for = expected_dates_str.issubset(
-            received_dates.union(failed_dates_for_segment)
-        )
+        all_dates_accounted_for = expected_dates_str.issubset(received_dates.union(failed_dates_for_segment))
         return all_dates_accounted_for
 
-    async def store_observation_by_date(
-        self, fields, observation_date_str, station_info
-    ):
+    async def store_observation_by_date(self, fields, observation_date_str, station_info):
         station_id = station_info.get("station_id", "unknown")
         date_obj = datetime.strptime(observation_date_str, "%Y-%m-%d")
-        segment_key = (
-            date_obj.strftime("%Y-%m")
-            if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_BUCKET == "month"
-            else date_obj.strftime("%Y")
-        )
+        segment_key = date_obj.strftime("%Y-%m") if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_BUCKET == "month" else date_obj.strftime("%Y")
 
         if station_id not in self.accumulated_data:
             self.accumulated_data[station_id] = {}
@@ -190,27 +151,19 @@ class ExportProcessor:
 
         self.accumulated_data[station_id][segment_key].append(fields)
 
-    async def export_data_for_segment(
-        self, station_id, segment_key, metadata, station_info
-    ):
+    async def export_data_for_segment(self, station_id, segment_key, metadata, station_info):
         logger_ExportProcessor.debug(f"station_info: {station_info}")
         if segment_key in self.accumulated_data[station_id]:
             segment_data = self.accumulated_data[station_id][segment_key]
             df = pd.DataFrame(segment_data)
-            await self.export_dataframe(
-                df, station_id, segment_key, metadata, station_info
-            )
+            await self.export_dataframe(df, station_id, segment_key, metadata, station_info)
             del self.accumulated_data[station_id][segment_key]
         else:
             logger_ExportProcessor.warning(f"No data found for segment: {segment_key}")
 
-    async def export_dataframe(
-        self, df, station_id, segment_key, metadata, station_info
-    ):
+    async def export_dataframe(self, df, station_id, segment_key, metadata, station_info):
         logger_ExportProcessor.debug(f"station_info: {station_info}")
-        logger_ExportProcessor.debug(
-            f"Preparing to export dataframe for segment: {segment_key}"
-        )
+        logger_ExportProcessor.debug(f"Preparing to export dataframe for segment: {segment_key}")
 
         # Directly access the station_name from station_info
         station_name = station_info.get("station_name", "unknown").replace(" ", "_")
@@ -220,11 +173,7 @@ class ExportProcessor:
             os.makedirs(station_dir)
 
         file_name = f"data_{station_name}_{segment_key}"
-        file_extension = (
-            "csv"
-            if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_TYPE.lower() == "csv"
-            else "xlsx"
-        )
+        file_extension = "csv" if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_TYPE.lower() == "csv" else "xlsx"
         full_filename = os.path.join(station_dir, f"{file_name}.{file_extension}")
 
         if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_TYPE.lower() == "csv":
@@ -240,19 +189,11 @@ class ExportProcessor:
         failed_date_str = metadata.get("date", "")
 
         failed_date_obj = datetime.strptime(failed_date_str, "%Y-%m-%d")
-        segment_key = (
-            failed_date_obj.strftime("%Y-%m")
-            if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_BUCKET == "month"
-            else failed_date_obj.strftime("%Y")
-        )
+        segment_key = failed_date_obj.strftime("%Y-%m") if config.WEATHERFLOW_COLLECTOR_PROCESSOR_EXPORT_BUCKET == "month" else failed_date_obj.strftime("%Y")
 
         # Add the failed date to the set of failed dates
-        self.failed_dates.setdefault(station_id, {}).setdefault(segment_key, set()).add(
-            failed_date_str
-        )
-        logger_ExportProcessor.warning(
-            f"Marked {failed_date_str} as failed for station {station_id}, segment {segment_key}."
-        )
+        self.failed_dates.setdefault(station_id, {}).setdefault(segment_key, set()).add(failed_date_str)
+        logger_ExportProcessor.warning(f"Marked {failed_date_str} as failed for station {station_id}, segment {segment_key}.")
 
     async def update(self, event_data):
         logger_ExportProcessor.debug("Received new event data for export.")

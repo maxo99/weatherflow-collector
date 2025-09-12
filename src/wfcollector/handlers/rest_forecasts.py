@@ -56,7 +56,7 @@ from datetime import datetime
 import pytz
 
 from wfcollector import logger, utils
-from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
+from wfcollector.weather_calculator import calculate_station_pressure_from_sea_level, calculate_weather_metrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -66,9 +66,7 @@ class BaseDataHandler:
         raise NotImplementedError("This method should be implemented by subclasses.")
 
 
-logger_RESTForecastsHandler = logger.get_module_logger(
-    __name__ + ".RESTForecastsHandler"
-)
+logger_RESTForecastsHandler = logger.get_module_logger(__name__ + ".RESTForecastsHandler")
 
 
 class RESTForecastsHandler(BaseDataHandler):
@@ -79,11 +77,7 @@ class RESTForecastsHandler(BaseDataHandler):
     async def process_data(self, full_data):
         logger_RESTForecastsHandler.debug("Starting to process forecast data")
 
-        if (
-            full_data
-            and "metadata" in full_data
-            and "station_id" in full_data["metadata"]
-        ):
+        if full_data and "metadata" in full_data and "station_id" in full_data["metadata"]:
             station_id = full_data["metadata"]["station_id"]
 
             # Process data with the extracted station_id
@@ -91,9 +85,7 @@ class RESTForecastsHandler(BaseDataHandler):
             await self.handle_forecast_daily(full_data)
             await self.handle_forecast_hourly(full_data)
 
-            logger_RESTForecastsHandler.debug(
-                f"Forecast data processed and saved for station {station_id}"
-            )
+            logger_RESTForecastsHandler.debug(f"Forecast data processed and saved for station {station_id}")
         else:
             logger_RESTForecastsHandler.warning("No valid data received for processing")
 
@@ -115,7 +107,7 @@ class RESTForecastsHandler(BaseDataHandler):
 
         logger_RESTForecastsHandler.debug(f"current_conditions: {current_conditions}")
 
-        fields = {field: value for field, value in current_conditions.items()}
+        fields = dict(current_conditions.items())
 
         # Extract weather data for additional calculations
         weather_data_keys = [
@@ -127,9 +119,7 @@ class RESTForecastsHandler(BaseDataHandler):
         weather_data = {k: fields.get(k) for k in weather_data_keys if k in fields}
         weather_data["elevation"] = station_info.get("station_elevation", 0)
 
-        additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-            weather_data
-        )
+        additional_metrics = calculate_weather_metrics(weather_data)
         fields.update(additional_metrics)
 
         # Normalize the fields
@@ -170,13 +160,9 @@ class RESTForecastsHandler(BaseDataHandler):
         }
 
         # Publish the data using the event manager
-        await self.event_manager.publish(
-            "influxdb_storage_event", collector_data_with_meta
-        )
+        await self.event_manager.publish("influxdb_storage_event", collector_data_with_meta)
 
-        logger_RESTForecastsHandler.debug(
-            f"Published weatherflow_obs data to event manager"
-        )
+        logger_RESTForecastsHandler.debug("Published weatherflow_obs data to event manager")
 
     async def handle_forecast_daily(self, full_data):
         metadata = full_data.get("metadata", {})
@@ -212,17 +198,13 @@ class RESTForecastsHandler(BaseDataHandler):
 
             # Create "day_end_local" and add 86399 seconds to "day_start_local"
             day_start_local = daily.get("day_start_local")
-            day_end_local = (
-                day_start_local + 86399 if day_start_local is not None else None
-            )
+            day_end_local = day_start_local + 86399 if day_start_local is not None else None
             fields["day_end_local"] = day_end_local
 
             # Calculating additional metrics for high and low temperatures
             high_temp = fields.get("air_temp_high")
             low_temp = fields.get("air_temp_low")
-            relative_humidity = (
-                50  # Assuming average relative humidity for calculations
-            )
+            relative_humidity = 50  # Assuming average relative humidity for calculations
 
             # Process for high and low temperatures
             for temp_type in ["high_temp", "low_temp"]:
@@ -233,9 +215,7 @@ class RESTForecastsHandler(BaseDataHandler):
                         "relative_humidity": relative_humidity,
                     }
 
-                    additional_metrics = (
-                        CalculateWeatherMetrics.calculate_weather_metrics(weather_data)
-                    )
+                    additional_metrics = calculate_weather_metrics(weather_data)
                     for key, value in additional_metrics.items():
                         fields[f"{key}_{temp_type}"] = value
 
@@ -263,9 +243,7 @@ class RESTForecastsHandler(BaseDataHandler):
                 current_data_point = (current_measurement, tags, fields, None)
                 data_batch.append(current_data_point)
 
-                logger_RESTForecastsHandler.debug(
-                    f"Added daily forecast details to forecast_current: {current_data_point}"
-                )
+                logger_RESTForecastsHandler.debug(f"Added daily forecast details to forecast_current: {current_data_point}")
 
         # Send all accumulated data points in a single batch
         if data_batch:
@@ -274,9 +252,7 @@ class RESTForecastsHandler(BaseDataHandler):
                 {"data_type": "batch", "batch_data": data_batch},
             )
 
-            logger_RESTForecastsHandler.debug(
-                "Published daily forecast batch data to event manager"
-            )
+            logger_RESTForecastsHandler.debug("Published daily forecast batch data to event manager")
 
     async def handle_forecast_hourly(self, full_data):
         metadata = full_data.get("metadata", {})
@@ -305,11 +281,7 @@ class RESTForecastsHandler(BaseDataHandler):
             # Convert sea level pressure to station pressure if elevation is available
             sea_level_pressure = hourly.get("sea_level_pressure")
             if sea_level_pressure is not None and elevation is not None:
-                station_pressure = (
-                    CalculateWeatherMetrics.calculate_station_pressure_from_sea_level(
-                        float(sea_level_pressure), elevation
-                    )
-                )
+                station_pressure = calculate_station_pressure_from_sea_level(float(sea_level_pressure), elevation)
                 fields["calculated_station_pressure"] = station_pressure
 
             timestamp = hourly.get("time")
@@ -330,9 +302,7 @@ class RESTForecastsHandler(BaseDataHandler):
                 "elevation": elevation,
             }
 
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-                weather_data
-            )
+            additional_metrics = calculate_weather_metrics(weather_data)
             fields.update(additional_metrics)
 
             # Normalize the observation fields
@@ -345,9 +315,7 @@ class RESTForecastsHandler(BaseDataHandler):
             tags = {
                 "collector_type": self.collector_type,
                 "number_of_days_out": days_out,
-                "local_day": int(fields.get("local_day", 0))
-                if fields.get("local_day") is not None
-                else 0,
+                "local_day": int(fields.get("local_day", 0)) if fields.get("local_day") is not None else 0,
             }
 
             # Add additional tags from station_info

@@ -47,18 +47,10 @@ standalone script. It requires a running instance of InfluxDB and access to Weat
 streams.
 """
 
-from utils.calculate_weather_metrics import CalculateWeatherMetrics
-
 # Import necessary libraries for InfluxDB communication and others
-
-
-
 # from concurrent.futures import ThreadPoolExecutor
-
-
-
-import logger
-from wfcollector import utils
+from wfcollector import logger, utils
+from wfcollector.weather_calculator import calculate_weather_metrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -68,9 +60,7 @@ class BaseDataHandler:
         raise NotImplementedError("This method should be implemented by subclasses.")
 
 
-logger_RESTObservationsStationHandler = logger.get_module_logger(
-    __name__ + ".RESTObservationsStationHandler"
-)
+logger_RESTObservationsStationHandler = logger.get_module_logger(__name__ + ".RESTObservationsStationHandler")
 
 
 class RESTObservationsStationHandler(BaseDataHandler):
@@ -80,9 +70,7 @@ class RESTObservationsStationHandler(BaseDataHandler):
 
     @utils.calculate_timestamp_delta("process_data")
     async def process_data(self, full_data):
-        logger_RESTObservationsStationHandler.debug(
-            "Processing full_data in RESTObservationsStationHandler"
-        )
+        logger_RESTObservationsStationHandler.debug("Processing full_data in RESTObservationsStationHandler")
 
         # Log the incoming full_data for debugging
         logger_RESTObservationsStationHandler.debug(f"Incoming full_data: {full_data}")
@@ -105,9 +93,7 @@ class RESTObservationsStationHandler(BaseDataHandler):
 
         # Additional processing: pressure trend mapping, weather metrics, etc.
         trend_mapping = {"falling": -1, "steady": 0, "rising": 1}
-        fields["pressure_trend"] = trend_mapping.get(
-            fields.get("pressure_trend", "steady"), 0
-        )
+        fields["pressure_trend"] = trend_mapping.get(fields.get("pressure_trend", "steady"), 0)
 
         # Extract weather data for additional calculations
         weather_data_keys = [
@@ -119,9 +105,7 @@ class RESTObservationsStationHandler(BaseDataHandler):
         weather_data = {k: fields[k] for k in weather_data_keys if k in fields}
         weather_data["elevation"] = station_info.get("station_elevation", 0)
 
-        additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-            weather_data
-        )
+        additional_metrics = calculate_weather_metrics(weather_data)
         fields.update(additional_metrics)
 
         # Create tags using 'metadata' and 'station_info'
@@ -160,9 +144,7 @@ class RESTObservationsStationHandler(BaseDataHandler):
         }
 
         # Publish the data using the event manager
-        await self.event_manager.publish(
-            "influxdb_storage_event", collector_data_with_meta
-        )
+        await self.event_manager.publish("influxdb_storage_event", collector_data_with_meta)
 
         # Loop through tags and set them as attributes
         for key, value in tags.items():
@@ -171,6 +153,4 @@ class RESTObservationsStationHandler(BaseDataHandler):
         # Update the current state
         self.current_timestamp = timestamp
 
-        logger_RESTObservationsStationHandler.debug(
-            f"Published weatherflow_obs data to event manager for device {station_id}"
-        )
+        logger_RESTObservationsStationHandler.debug(f"Published weatherflow_obs data to event manager for device {station_id}")

@@ -1,30 +1,22 @@
 # udp.py
 
 
-import configfrom wfcollector import config, logger, utils
-
-
-
-from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
-
-
-import time
-import pytz
-from datetime import datetime, timedelta
-import json
-import inspect
-import os
 import asyncio
+import inspect
+import json
+import multiprocessing
+import os
+import time
 import traceback
 
-import multiprocessing
-
 # from concurrent.futures import ThreadPoolExecutor
-
 from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime, timedelta
 
+import pytz
 
-from wfcollector import utils
+from wfcollector import config, logger, utils
+from wfcollector.weather_calculator import calculate_weather_metrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -136,13 +128,9 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_rapid_wind",
             )
 
-            logger_UDPHandler.debug(
-                f"Published rapid_wind data to event manager for device {serial_number}"
-            )
+            logger_UDPHandler.debug(f"Published rapid_wind data to event manager for device {serial_number}")
 
-            logger_UDPHandler.debug(
-                f"collector_data_with_meta: {collector_data_with_meta}"
-            )
+            logger_UDPHandler.debug(f"collector_data_with_meta: {collector_data_with_meta}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -154,9 +142,7 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(
-                f"Invalid or incomplete rapid_wind data received: {full_data}"
-            )
+            logger_UDPHandler.warning(f"Invalid or incomplete rapid_wind data received: {full_data}")
 
     # @utils.measure_execution_time("handle_evt_strike")
     @utils.calculate_timestamp_delta("handle_evt_strike")
@@ -225,9 +211,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_evt_strike",
             )
 
-            logger_UDPHandler.debug(
-                f"Published rapid_wind data to event manager for device {serial_number}"
-            )
+            logger_UDPHandler.debug(f"Published rapid_wind data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -239,9 +223,7 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(
-                f"Invalid or incomplete evt_strike data received: {full_data}"
-            )
+            logger_UDPHandler.warning(f"Invalid or incomplete evt_strike data received: {full_data}")
 
     # @utils.measure_execution_time("handle_device_status")
     @utils.calculate_timestamp_delta("handle_device_status")
@@ -318,9 +300,7 @@ class UDPHandler(BaseDataHandler):
             publisher="UDPHandler.handle_device_status",
         )
 
-        logger_UDPHandler.debug(
-            f"Published weatherflow_device_status data to event manager for device {serial_number}"
-        )
+        logger_UDPHandler.debug(f"Published weatherflow_device_status data to event manager for device {serial_number}")
 
         # Setting attirbutes for the delta timestamp decorator
 
@@ -415,9 +395,7 @@ class UDPHandler(BaseDataHandler):
             publisher="UDPHandler.handle_hub_status",
         )
 
-        logger_UDPHandler.debug(
-            f"Published weatherflow_hub_status data to event manager for device {hub_sn}"
-        )
+        logger_UDPHandler.debug(f"Published weatherflow_hub_status data to event manager for device {hub_sn}")
 
         # Setting attirbutes for the delta timestamp decorator
 
@@ -467,11 +445,7 @@ class UDPHandler(BaseDataHandler):
                 "report_interval": 17,
             }
 
-            fields = {
-                field_name: obs_data[position]
-                for field_name, position in field_mapping.items()
-                if position < len(obs_data)
-            }
+            fields = {field_name: obs_data[position] for field_name, position in field_mapping.items() if position < len(obs_data)}
 
             timestamp = fields.get("timestamp", None)
 
@@ -486,9 +460,7 @@ class UDPHandler(BaseDataHandler):
             weather_data["elevation"] = data.get("station_elevation")
 
             # Calculate additional weather metrics
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-                weather_data
-            )
+            additional_metrics = calculate_weather_metrics(weather_data)
             fields.update(additional_metrics)
 
             # Extract station information
@@ -542,9 +514,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_obs_st",
             )
 
-            logger_UDPHandler.debug(
-                f"Published weatherflow_obs data to event manager for device {serial_number}"
-            )
+            logger_UDPHandler.debug(f"Published weatherflow_obs data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -556,9 +526,7 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(
-                f"Invalid or incomplete obs_st data received: {full_data}"
-            )
+            logger_UDPHandler.warning(f"Invalid or incomplete obs_st data received: {full_data}")
 
     # @utils.measure_execution_time("handle_obs_air")
     @utils.calculate_timestamp_delta("handle_obs_air")
@@ -589,11 +557,7 @@ class UDPHandler(BaseDataHandler):
                 "report_interval": 7,
             }
 
-            fields = {
-                field_name: obs_air_data[position]
-                for field_name, position in field_mapping.items()
-                if position < len(obs_air_data)
-            }
+            fields = {field_name: obs_air_data[position] for field_name, position in field_mapping.items() if position < len(obs_air_data)}
 
             timestamp = fields.get("timestamp", None)
 
@@ -607,9 +571,7 @@ class UDPHandler(BaseDataHandler):
             weather_data["elevation"] = data.get("station_elevation")
 
             # Calculate additional weather metrics
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-                weather_data
-            )
+            additional_metrics = calculate_weather_metrics(weather_data)
             fields.update(additional_metrics)
 
             # Extract station information
@@ -663,9 +625,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_obs_air",
             )
 
-            logger_UDPHandler.debug(
-                f"Published weatherflow_obs_air data to event manager for device {serial_number}"
-            )
+            logger_UDPHandler.debug(f"Published weatherflow_obs_air data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -677,9 +637,7 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(
-                f"Invalid or incomplete obs_air data received: {full_data}"
-            )
+            logger_UDPHandler.warning(f"Invalid or incomplete obs_air data received: {full_data}")
 
     # @utils.measure_execution_time("handle_obs_sky")
     @utils.calculate_timestamp_delta("handle_obs_sky")
@@ -717,9 +675,7 @@ class UDPHandler(BaseDataHandler):
             }
 
             fields = {
-                field_name: obs_sky_data[position]
-                if position < len(obs_sky_data) and obs_sky_data[position] is not None
-                else None
+                field_name: obs_sky_data[position] if position < len(obs_sky_data) and obs_sky_data[position] is not None else None
                 for field_name, position in field_mapping.items()
             }
 
@@ -776,9 +732,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_obs_sky",
             )
 
-            logger_UDPHandler.debug(
-                f"Published weatherflow_obs_sky data to event manager for device {serial_number}"
-            )
+            logger_UDPHandler.debug(f"Published weatherflow_obs_sky data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -790,6 +744,4 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(
-                f"Invalid or incomplete obs_sky data received: {full_data}"
-            )
+            logger_UDPHandler.warning(f"Invalid or incomplete obs_sky data received: {full_data}")

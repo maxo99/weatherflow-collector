@@ -130,7 +130,7 @@ class CustomFormatter(logging.Formatter):
         "storage.file.FileStorage": "dark_magenta",
         "storage.influxdb.InfluxDBStorage": "dark_magenta",
         "utils": "light_cyan",
-        "utils.calculate_weather_metrics.CalculateWeatherMetrics": "light_cyan",
+        "wfcollector.weather_calculator": "light_cyan",
         "utils.utils.SingletonMeta": "light_cyan",
         "utils.utils.StationMetadataSingleton": "light_cyan",
         "websockets": "light_cyan",
@@ -173,23 +173,17 @@ class CustomFormatter(logging.Formatter):
             colored_module = f"{module_color}{module_name}{self.COLOR_CODES['reset']}"
 
             # Assign color to log level name
-            log_level_color = self.LOG_LEVEL_COLORS.get(
-                record.levelname, self.COLOR_CODES["reset"]
-            )
-            colored_levelname = (
-                f"{log_level_color}{record.levelname}{self.COLOR_CODES['reset']}"
-            )
+            log_level_color = self.LOG_LEVEL_COLORS.get(record.levelname, self.COLOR_CODES["reset"])
+            colored_levelname = f"{log_level_color}{record.levelname}{self.COLOR_CODES['reset']}"
         else:
             colored_module = module_name
             colored_levelname = record.levelname
 
         # Bold the method name if colors are enabled
-        bold_funcName = (
-            f"\x1b[1m{record.funcName}\x1b[0m" if self.use_color else record.funcName
-        )
+        bold_funcname = f"\x1b[1m{record.funcName}\x1b[0m" if self.use_color else record.funcName
 
         # Construct log format string using the original format
-        log_fmt = f"%(asctime)s - {colored_module} - {class_name} - {bold_funcName} - {colored_levelname} - %(message)s"
+        log_fmt = f"%(asctime)s - {colored_module} - {class_name} - {bold_funcname} - {colored_levelname} - %(message)s"
 
         # Apply format
         formatter = logging.Formatter(log_fmt, "%Y-%m-%d %H:%M:%S")
@@ -215,9 +209,7 @@ def configure_logging():
     # Console logging configuration
     console_enabled = config.WEATHERFLOW_COLLECTOR_LOGGER_CONSOLE_ENABLED
     if console_enabled:
-        console_formatter = CustomFormatter(
-            use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_CONSOLE_USE_COLOR_ENABLED
-        )
+        console_formatter = CustomFormatter(use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_CONSOLE_USE_COLOR_ENABLED)
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.DEBUG)
@@ -226,9 +218,7 @@ def configure_logging():
     # File logging configuration
     file_enabled = config.WEATHERFLOW_COLLECTOR_LOGGER_FILE_ENABLED
     if file_enabled:
-        file_formatter = CustomFormatter(
-            use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_FILE_USE_COLOR_ENABLED
-        )
+        file_formatter = CustomFormatter(use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_FILE_USE_COLOR_ENABLED)
         log_directory = config.WEATHERFLOW_COLLECTOR_LOG_DIRECTORY
         os.makedirs(log_directory, exist_ok=True)
         log_file_name = f"application_{datetime.now().strftime('%Y-%m-%d')}.log"
@@ -250,43 +240,25 @@ def get_module_logger(name=None):
 
     # Add console handler based on config
     if config.WEATHERFLOW_COLLECTOR_LOGGER_CONSOLE_ENABLED:
-        console_handler_exists = any(
-            isinstance(handler, logging.StreamHandler)
-            for handler in module_logger.handlers
-        )
+        console_handler_exists = any(isinstance(handler, logging.StreamHandler) for handler in module_logger.handlers)
         if not console_handler_exists:
-            console_level_name = get_log_level_for_module(
-                name, config.WEATHERFLOW_COLLECTOR_CONSOLE_LOG_LEVELS, "INFO"
-            )
+            console_level_name = get_log_level_for_module(name, config.WEATHERFLOW_COLLECTOR_CONSOLE_LOG_LEVELS, "INFO")
             console_handler = logging.StreamHandler()
-            console_handler.setFormatter(
-                CustomFormatter(
-                    use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_CONSOLE_USE_COLOR_ENABLED
-                )
-            )
+            console_handler.setFormatter(CustomFormatter(use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_CONSOLE_USE_COLOR_ENABLED))
             console_handler.setLevel(getattr(logging, console_level_name))
             module_logger.addHandler(console_handler)
 
     # Add file handler based on config
     if config.WEATHERFLOW_COLLECTOR_LOGGER_FILE_ENABLED:
-        file_handler_exists = any(
-            isinstance(handler, logging.FileHandler)
-            for handler in module_logger.handlers
-        )
+        file_handler_exists = any(isinstance(handler, logging.FileHandler) for handler in module_logger.handlers)
         if not file_handler_exists:
-            file_level_name = get_log_level_for_module(
-                name, config.WEATHERFLOW_COLLECTOR_FILE_LOG_LEVELS, "DEBUG"
-            )
+            file_level_name = get_log_level_for_module(name, config.WEATHERFLOW_COLLECTOR_FILE_LOG_LEVELS, "DEBUG")
             log_directory = config.WEATHERFLOW_COLLECTOR_LOG_DIRECTORY
             os.makedirs(log_directory, exist_ok=True)
             log_file_name = f"{name}.log"
             log_file_path = os.path.join(log_directory, log_file_name)
             file_handler = logging.FileHandler(log_file_path)
-            file_handler.setFormatter(
-                CustomFormatter(
-                    use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_FILE_USE_COLOR_ENABLED
-                )
-            )
+            file_handler.setFormatter(CustomFormatter(use_color=config.WEATHERFLOW_COLLECTOR_LOGGER_FILE_USE_COLOR_ENABLED))
             file_handler.setLevel(getattr(logging, file_level_name))
             module_logger.addHandler(file_handler)
 

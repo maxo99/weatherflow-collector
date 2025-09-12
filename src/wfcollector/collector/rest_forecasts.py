@@ -46,15 +46,11 @@ import asyncio
 import time
 from datetime import datetime, timedelta
 
-
 from wfcollector import config, logger, utils
 
-# from utils.calculate_weather_metrics import CalculateWeatherMetrics
 
 
-logger_CollectorRestForcecasts = logger.get_module_logger(
-    __name__ + ".RestForcecastsCollector"
-)
+_logger = logger.get_module_logger(__name__ + ".RestForcecastsCollector")
 
 
 class RestForcecastsCollector:
@@ -72,18 +68,14 @@ class RestForcecastsCollector:
 
         try:
             url = f"{self.base_url}?station_id={station_id}&token={self.api_key}"
-            logger_CollectorRestForcecasts.debug(
-                f"Fetching data for station ID {station_id} from URL: {url}"
-            )
+            _logger.debug(f"Fetching data for station ID {station_id} from URL: {url}")
 
             json_data = await utils.fetch_data_from_url(
                 url, self.collector_type, self.event_manager
-            )
+                )
 
             if json_data:
-                logger_CollectorRestForcecasts.debug(
-                    f"Received JSON data for station ID {station_id}"
-                )
+                _logger.debug(f"Received JSON data for station ID {station_id}")
 
                 data_with_metadata = {
                     "metadata": {
@@ -98,13 +90,9 @@ class RestForcecastsCollector:
                     data_with_metadata,
                     publisher="RestForcecastsCollector.fetch_forecasts",
                 )
-                logger_CollectorRestForcecasts.debug(
-                    f"Published data to event manager for station ID {station_id}"
-                )
+                _logger.debug(f"Published data to event manager for station ID {station_id}")
             else:
-                logger_CollectorRestForcecasts.warning(
-                    f"No data received for station ID {station_id} from URL: {url}"
-                )
+                _logger.warning(f"No data received for station ID {station_id} from URL: {url}")
 
             # Increment request count
             self.request_count += 1
@@ -112,9 +100,7 @@ class RestForcecastsCollector:
             # Calculate processing duration and publish metrics
             processing_duration = time.time() - request_processing_start
 
-            logger_CollectorRestForcecasts.debug(
-                f"Publishing metrics: request_count={self.request_count}, errors={self.error_count}, duration={processing_duration}"
-            )
+            _logger.debug(f"Publishing metrics: request_count={self.request_count}, errors={self.error_count}, duration={processing_duration}")
 
             await utils.async_publish_metrics(
                 self.event_manager,
@@ -127,14 +113,12 @@ class RestForcecastsCollector:
 
         except Exception as e:
             self.error_count += 1  # Increment error count
-            logger_CollectorRestForcecasts.error(f"Error in retrieving data: {e}")
+            _logger.error(f"Error in retrieving data: {e}")
 
             # Publish error metrics
             processing_duration = time.time() - request_processing_start
 
-            logger_CollectorRestForcecasts.debug(
-                f"Publishing metrics: request_count={self.request_count}, errors={self.error_count}, duration={processing_duration}"
-            )
+            _logger.debug(f"Publishing metrics: request_count={self.request_count}, errors={self.error_count}, duration={processing_duration}")
 
             await utils.async_publish_metrics(
                 self.event_manager,
@@ -155,30 +139,23 @@ class RestForcecastsCollector:
         await asyncio.gather(*tasks)
 
     async def run_forever(self):
-        logger_CollectorRestForcecasts.info(
-            "Starting RestForcecastsCollector in run_forever mode."
-        )
+        _logger.info("Starting RestForcecastsCollector in run_forever mode.")
         while True:
             start_time = asyncio.get_event_loop().time()
             await self.retrieve_and_save_data()
             elapsed_time = asyncio.get_event_loop().time() - start_time
 
             # Logging the execution time
-            logger_CollectorRestForcecasts.info(
-                f"Execution of data retrieval and processing took {elapsed_time:.2f} seconds."
-            )
+            _logger.info(f"Execution of data retrieval and processing took {elapsed_time:.2f} seconds.")
 
             # Calculating and logging the sleep time
             sleep_time = max(
-                config.WEATHERFLOW_COLLECTOR_COLLECTOR_REST_FORECASTS_FETCH_INTERVAL
-                - elapsed_time,
+                config.WEATHERFLOW_COLLECTOR_COLLECTOR_REST_FORECASTS_FETCH_INTERVAL - elapsed_time,
                 0,
             )
             next_start_time = datetime.now() + timedelta(seconds=sleep_time)
             next_start_time_formatted = next_start_time.strftime("%Y-%m-%d %H:%M:%S")
 
-            logger_CollectorRestForcecasts.info(
-                f"Sleeping for {sleep_time:.2f} seconds. Next cycle will start at approximately {next_start_time_formatted}."
-            )
+            _logger.info(f"Sleeping for {sleep_time:.2f} seconds. Next cycle will start at approximately {next_start_time_formatted}.")
 
             await asyncio.sleep(sleep_time)

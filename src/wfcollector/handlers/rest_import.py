@@ -52,9 +52,8 @@ streams.
 
 # from concurrent.futures import ThreadPoolExecutor
 
-
 from wfcollector import config, logger, utils
-from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
+from wfcollector.weather_calculator import calculate_weather_metrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -110,10 +109,7 @@ class RESTImportHandler(BaseDataHandler):
         batch = []
         for observation in data.get("obs", []):
             # Mapping fields and calculating additional metrics
-            fields = {
-                self.field_mapping.get(k, k): v
-                for k, v in zip(data.get("ob_fields", []), observation)
-            }
+            fields = {self.field_mapping.get(k, k): v for k, v in zip(data.get("ob_fields", []), observation)}
             fields = utils.normalize_fields(fields)
 
             elevation = station_info.get("elevation", None)
@@ -124,9 +120,7 @@ class RESTImportHandler(BaseDataHandler):
                 "wind_avg": fields.get("wind_avg"),
                 "elevation": elevation,
             }
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-                weather_data
-            )
+            additional_metrics = calculate_weather_metrics(weather_data)
             fields.update(additional_metrics)
 
             tags = {
@@ -157,8 +151,6 @@ class RESTImportHandler(BaseDataHandler):
                 batch = []
 
         if batch:
-            await self.event_manager.publish(
-                "influxdb_storage_event", {"data_type": "batch", "batch_data": batch}
-            )
+            await self.event_manager.publish("influxdb_storage_event", {"data_type": "batch", "batch_data": batch})
 
         logger_RESTImportHandler.debug("Data processed by RESTImportHandler")

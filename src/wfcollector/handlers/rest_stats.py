@@ -47,7 +47,6 @@ standalone script. It requires a running instance of InfluxDB and access to Weat
 streams.
 """
 
-
 # from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
@@ -55,7 +54,7 @@ import pytz
 from pytz import timezone
 
 from wfcollector import config, logger, utils
-from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
+from wfcollector.weather_calculator import calculate_weather_metrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -121,9 +120,7 @@ class RESTStatsHandler:
         batch_data = []
         for category in ["stats_day", "stats_week", "stats_month", "stats_year"]:
             category_data = data.get(category, [])
-            processed_category_data = await self.process_category(
-                category_data, category, metadata, station_info
-            )
+            processed_category_data = await self.process_category(category_data, category, metadata, station_info)
             for data_point in processed_category_data:
                 # Convert dictionary data_point to tuple format
                 measurement = data_point["measurement"]
@@ -132,9 +129,7 @@ class RESTStatsHandler:
                 timestamp = data_point["time"]
 
                 # Log the type of data_point components
-                logger_RESTStatsHandler.debug(
-                    f"Measurement: {measurement}, Tags: {tags}, Fields: {fields}, Timestamp: {timestamp}"
-                )
+                logger_RESTStatsHandler.debug(f"Measurement: {measurement}, Tags: {tags}, Fields: {fields}, Timestamp: {timestamp}")
 
                 # Append tuple to batch_data
                 batch_data.append((measurement, tags, fields, timestamp))
@@ -147,9 +142,7 @@ class RESTStatsHandler:
             )
             logger_RESTStatsHandler.debug("Published stats batch data to event manager")
 
-    async def process_category(
-        self, category_data, category_name, metadata, station_info
-    ):
+    async def process_category(self, category_data, category_name, metadata, station_info):
         processed_data = []
 
         # Mapping for category names
@@ -161,9 +154,7 @@ class RESTStatsHandler:
             "stats_alltime": "Overall",
         }
 
-        station_time_zone = station_info.get(
-            "time_zone", "UTC"
-        )  # Default to UTC if not provided
+        station_time_zone = station_info.get("time_zone", "UTC")  # Default to UTC if not provided
         tz = timezone(station_time_zone)
 
         for entry in category_data:
@@ -175,9 +166,7 @@ class RESTStatsHandler:
 
             # Adjust the timestamp to the last minute of the period, respecting the timezone
             if category_name == "stats_day":
-                timestamp = datetime(
-                    date.year, date.month, date.day, 23, 59, 59, tzinfo=tz
-                )
+                timestamp = datetime(date.year, date.month, date.day, 23, 59, 59, tzinfo=tz)
             elif category_name == "stats_year":
                 timestamp = datetime(date.year, 12, 31, 23, 59, 59, tzinfo=tz)
             # Add other conditions as needed
@@ -198,14 +187,10 @@ class RESTStatsHandler:
                         fields[field_name] = value
                     else:
                         if not config.WEATHERFLOW_COLLECTOR_HANDLER_REST_STATS_SUPPRESS_WARNINGS_ENABLED:
-                            logger_RESTStatsHandler.warning(
-                                f"Field '{field_name}' is None in {category_name} for station {metadata.get('station_id')}"
-                            )
+                            logger_RESTStatsHandler.warning(f"Field '{field_name}' is None in {category_name} for station {metadata.get('station_id')}")
                 else:
                     if not config.WEATHERFLOW_COLLECTOR_HANDLER_REST_STATS_SUPPRESS_WARNINGS_ENABLED:
-                        logger_RESTStatsHandler.warning(
-                            f"Index {index} out of range for field '{field_name}' in {category_name} for station {metadata.get('station_id')}"
-                        )
+                        logger_RESTStatsHandler.warning(f"Index {index} out of range for field '{field_name}' in {category_name} for station {metadata.get('station_id')}")
 
             elevation = station_info.get("elevation", None)
 
@@ -218,9 +203,7 @@ class RESTStatsHandler:
                 "elevation": elevation,
             }
 
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
-                weather_data
-            )
+            additional_metrics = calculate_weather_metrics(weather_data)
             fields.update(additional_metrics)
             fields = utils.normalize_fields(fields)
 

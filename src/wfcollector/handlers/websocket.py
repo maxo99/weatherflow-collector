@@ -54,7 +54,7 @@ streams.
 
 
 from wfcollector import logger, utils
-from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
+from wfcollector.weather_calculator import calculate_weather_metrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -431,7 +431,7 @@ class WebSocketHandler(BaseDataHandler):
                 if key in fields
             }
             weather_data["elevation"] = elevation
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
+            additional_metrics = calculate_weather_metrics(
                 weather_data
             )
             fields.update(additional_metrics)
@@ -548,7 +548,7 @@ class WebSocketHandler(BaseDataHandler):
             }
 
             # Calculate additional weather metrics
-            additional_metrics = CalculateWeatherMetrics.calculate_weather_metrics(
+            additional_metrics = calculate_weather_metrics(
                 weather_data
             )
             fields.update(additional_metrics)
