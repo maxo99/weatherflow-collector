@@ -46,24 +46,16 @@ The StationMetadataManager is an integral part of the WeatherFlow Collector syst
 It works in conjunction with other components of the system to manage weather station data effectively.
 """
 
-import config
-
-# from api_data_saver import APIDataSaver
-from datetime import datetime
-
-# from data_storage import DataStorage
-
-from logger import configure_logging
-import utils.utils as utils
-
 import configparser
-import json
-import logging
 import os
-import requests
 import time
 
-import logger
+# from api_data_saver import APIDataSaver
+
+import requests
+
+# from data_storage import DataStorage
+from wfcollector import config, logger, utils
 
 logger_StationMetadataManager = logger.get_module_logger(
     __name__ + ".StationMetadataManager"
@@ -74,7 +66,6 @@ logger_StationMetadataManager = logger.get_module_logger(
 
 class StationMetadataManager:
     def __init__(self):
-
         self.api_token = config.WEATHERFLOW_COLLECTOR_API_TOKEN
         self.api_url = (
             f"{config.WEATHERFLOW_API_REST_STATIONS_URL}?token={self.api_token}"
@@ -241,7 +232,7 @@ class StationMetadataManager:
 
             # Add sections for each device in the station
             for device in station_info.get("devices", []):
-                device_section = f'Device_{device["device_id"]}_{station_id}'
+                device_section = f"Device_{device['device_id']}_{station_id}"
                 config_parser.add_section(device_section)
 
                 # Set default values for the device

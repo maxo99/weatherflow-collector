@@ -43,13 +43,10 @@ It is tailored to receive and process data specifically from WeatherFlow weather
 
 import asyncio
 import json
-import time
 import socket
+import time
 
-import config
-import utils.utils as utils
-import logger
-
+from wfcollector import config, logger, utils
 
 UDPProtocol = logger.get_module_logger(__name__ + ".UDPProtocol")
 

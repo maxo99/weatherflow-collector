@@ -1,7 +1,7 @@
 """
 collector_rest_observations_station.py
 
-This module defines the RESTObservationsStationCollector class, which handles API requests to the WeatherFlow Smart Weather API. 
+This module defines the RESTObservationsStationCollector class, which handles API requests to the WeatherFlow Smart Weather API.
 It retrieves the latest observations for weather stations and publishes the data for further processing and analysis.
 
 Key Features:
@@ -11,7 +11,7 @@ Key Features:
 - Publishes the processed data to an event manager.
 
 Usage:
-Initialize the RESTObservationsStationCollector class with an event manager instance and a station configuration. 
+Initialize the RESTObservationsStationCollector class with an event manager instance and a station configuration.
 It periodically fetches the latest weather observations based on the provided configuration and publishes this data.
 
 Dependencies:
@@ -26,20 +26,13 @@ Author: Dave Schmid
 Created: 2023-12-17
 """
 
-import aiohttp
 import asyncio
-import logging
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 
-import config
-import utils.utils as utils
-
-
-#from utils.calculate_weather_metrics import CalculateWeatherMetrics
-
-import logger
+# from utils.calculate_weather_metrics import CalculateWeatherMetrics
+from wfcollector import config, logger, utils
 
 logger_RESTObservationsStationCollector = logger.get_module_logger(
     __name__ + ".RESTObservationsStationCollector"
@@ -89,7 +82,9 @@ class RESTObservationsStationCollector:
                     }
 
                     await self.event_manager.publish(
-                        "collector_data_event", data_with_metadata, publisher="RESTObservationsStationCollector.handle_latest_station_observation"
+                        "collector_data_event",
+                        data_with_metadata,
+                        publisher="RESTObservationsStationCollector.handle_latest_station_observation",
                     )
                     logger_RESTObservationsStationCollector.debug(
                         f"Published data to event manager for station ID {station_id}"
@@ -125,7 +120,9 @@ class RESTObservationsStationCollector:
 
         except Exception as e:
             self.error_count += 1  # Increment error count
-            logger_RESTObservationsStationCollector.error(f"Error in retrieving data: {e}")
+            logger_RESTObservationsStationCollector.error(
+                f"Error in retrieving data: {e}"
+            )
 
             # Publish error metrics
             processing_duration = time.time() - request_processing_start
@@ -170,7 +167,9 @@ class RESTObservationsStationCollector:
 
             # Calculating and logging the sleep time
             sleep_time = max(
-                config.WEATHERFLOW_COLLECTOR_COLLECTOR_REST_OBSERVATIONS_INTERVAL - elapsed_time, 0
+                config.WEATHERFLOW_COLLECTOR_COLLECTOR_REST_OBSERVATIONS_INTERVAL
+                - elapsed_time,
+                0,
             )
             next_start_time = datetime.now() + timedelta(seconds=sleep_time)
             next_start_time_formatted = next_start_time.strftime("%Y-%m-%d %H:%M:%S")

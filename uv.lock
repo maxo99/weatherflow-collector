@@ -820,6 +820,7 @@ requires-dist = [
     { name = "pytz", specifier = "==2024.1" },
     { name = "requests", specifier = "==2.32.3" },
     { name = "websockets", specifier = "==12.0" },
+    { name = "wfcollector" },
 ]
 
 [package.metadata.requires-dev]

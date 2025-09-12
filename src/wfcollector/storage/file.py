@@ -3,8 +3,8 @@
 """
 FileStorage Module for WeatherFlow Collector
 
-This module is responsible for writing received meteorological data to files. It is part of the WeatherFlow Collector 
-system, which gathers data from various sources like UDP, WebSocket, and REST clients. The FileStorage specifically 
+This module is responsible for writing received meteorological data to files. It is part of the WeatherFlow Collector
+system, which gathers data from various sources like UDP, WebSocket, and REST clients. The FileStorage specifically
 handles the storage of this data in a structured and accessible file format.
 
 Key Features:
@@ -13,7 +13,7 @@ Key Features:
 - Capable of handling data from different sources, including UDP, WebSocket, and REST clients.
 
 Usage:
-The FileStorage is initialized with an event manager and an output directory. It subscribes to data events, 
+The FileStorage is initialized with an event manager and an output directory. It subscribes to data events,
 processing each incoming packet and writing it to a JSON file in the appropriate directory.
 
 Dependencies:
@@ -35,21 +35,17 @@ Author: [Your Name or Team's Name]
 Last Update: [Last Update Date]
 
 Note:
-The design of FileStorage is tailored to the WeatherFlow Collector system's structure. It can be adapted 
+The design of FileStorage is tailored to the WeatherFlow Collector system's structure. It can be adapted
 or extended for broader applications or different data formats as needed.
 """
-
 
 import json
 import os
 from datetime import datetime
-import logger
 import time
-import asyncio
 
+from wfcollector import config, logger, utils
 
-import utils.utils as utils
-import config
 
 logger_FileStorage = logger.get_module_logger(__name__ + ".FileStorage")
 
@@ -151,7 +147,6 @@ class FileStorage:
             return f"data_unknown_{date_str}"
 
     async def write_to_file(self, full_data, collector_type, filename_suffix):
-
         if (
             collector_type == "collector_rest_forecasts"
             and not config.WEATHERFLOW_COLLECTOR_STORAGE_FILE_COLLECTOR_REST_FORECASTS_ENABLED

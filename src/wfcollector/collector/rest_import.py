@@ -1,13 +1,9 @@
-import aiohttp
 import asyncio
-import logging
 from datetime import datetime, timedelta
-import config
-import utils.utils as utils
 import json
-import time
 
-import logger
+from wfcollector import config, logger, utils
+
 
 logger_RestImportClient = logger.get_module_logger(__name__ + ".RestImportCollector")
 
@@ -72,7 +68,6 @@ class RestImportCollector:
             logger_RestImportClient.error(f"Error fetching daily observations: {e}")
             return None
         finally:
-
             pass
             # Add a delay between requests
             # delay_duration_ms = config.WEATHERFLOW_COLLECTOR_COLLECTOR_REST_IMPORT_FETCH_OBSERVATIONS_DELAY_MS

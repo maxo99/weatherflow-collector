@@ -33,12 +33,14 @@ Dependencies:
 Author: Dave Schmid
 Created: 2023-12-17
 """
-import config
-from datetime import datetime
 
 import inspect
 import logging
 import os
+from datetime import datetime
+
+from wfcollector import config
+
 
 # Custom Formatter to add colors, time, module, and method to log levels
 class CustomFormatter(logging.Formatter):

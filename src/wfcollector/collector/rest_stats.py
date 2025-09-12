@@ -1,14 +1,10 @@
 # collector_rest_stats.py
 
 import asyncio
-import logging
 from datetime import datetime, timedelta
 import time
+from wfcollector import config, logger, utils
 
-import config
-import utils.utils as utils
-
-import logger
 
 logger_RestStatsCollector = logger.get_module_logger(__name__ + ".RestStatsCollector")
 

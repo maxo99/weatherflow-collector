@@ -3,8 +3,8 @@
 """
 EventManager Module for WeatherFlow Collector
 
-This module provides the core functionality for event management in the WeatherFlow Collector system. 
-It facilitates the subscription and notification of various clients (such as data handlers and clients) 
+This module provides the core functionality for event management in the WeatherFlow Collector system.
+It facilitates the subscription and notification of various clients (such as data handlers and clients)
 to specific event types, especially for handling meteorological data from different sources.
 
 Key Features:
@@ -13,8 +13,8 @@ Key Features:
 - Offers flexibility in handling both synchronous and asynchronous collector update methods.
 
 Usage:
-The EventManager is used to manage data flow within the WeatherFlow Collector system. Clients subscribe 
-to the EventManager, specifying the types of events they are interested in. When data is published to an 
+The EventManager is used to manage data flow within the WeatherFlow Collector system. Clients subscribe
+to the EventManager, specifying the types of events they are interested in. When data is published to an
 event type, all subscribed clients are notified and can process the data as required.
 
 Dependencies:
@@ -35,20 +35,17 @@ Author: [Your Name or Team's Name]
 Last Update: [Last Update Date]
 
 Note:
-EventManager is a crucial component of the WeatherFlow Collector, ensuring smooth and efficient data flow 
-across various parts of the system. Its implementation can be adapted for other systems requiring similar 
+EventManager is a crucial component of the WeatherFlow Collector, ensuring smooth and efficient data flow
+across various parts of the system. Its implementation can be adapted for other systems requiring similar
 event-driven architectures.
 """
-
 
 import asyncio
 import inspect
 import threading
-import logger
 import time
 
-import utils.utils as utils
-import config
+from wfcollector import config, logger, utils
 
 logger_EventManager = logger.get_module_logger(__name__ + ".EventManager")
 

@@ -43,9 +43,8 @@ Modifications may be required for use with other systems or data sources.
 """
 
 import asyncio
-import config
-import threading
-import logger
+from wfcollector import config
+from wfcollector import logger
 
 from collector.rest_export import RestExportCollector
 from collector.rest_forecasts import RestForcecastsCollector

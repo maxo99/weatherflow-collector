@@ -1,27 +1,23 @@
 # handler.py
 
-import config
-import time
-import os
 import asyncio
+import time
 
-import logger
-import utils.utils as utils
+from wfcollector import logger, utils
 
 from .rest_forecasts import RESTForecastsHandler
 from .rest_import import RESTImportHandler
 from .rest_observations_device import RESTObservationsDeviceHandler
 from .rest_observations_station import RESTObservationsStationHandler
 from .rest_stats import RESTStatsHandler
-from .websocket import WebSocketHandler
 from .udp import UDPHandler
+from .websocket import WebSocketHandler
 
 logger_Handler = logger.get_module_logger(__name__ + ".Handler")
 
 
 class Handler:
     def __init__(self, event_manager):
-
         self.event_manager = event_manager
         self.handlers = {
             "collector_udp": UDPHandler(event_manager),

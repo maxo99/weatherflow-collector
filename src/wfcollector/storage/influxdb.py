@@ -56,14 +56,14 @@ import os
 # Import necessary libraries for InfluxDB communication and others
 import time
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime
 
-import pytz
-from wfcollector.utils.utils as utils
-from influxdb_client import DeleteService, InfluxDBClient, Point, WriteOptions
+# import pytz
+from influxdb_client import Point, WriteOptions
 from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
+from influxdb_client.domain.write_precision import WritePrecision
 
-from wfcollector import config, logger
+from wfcollector import config, logger, utils
 
 logger_InfluxDBStorage = logger.get_module_logger(__name__ + ".InfluxDBStorage")
 
@@ -196,7 +196,7 @@ class InfluxDBStorage:
                         secondary_point.tag(tag, value)
                     for field, value in fields.items():
                         secondary_point.field(field, value)
-                    secondary_point.time(timestamp, write_precision="s")
+                    secondary_point.time(timestamp, write_precision=WritePrecision.S)
 
                     # Add the secondary data point to the points list
                     points.append(secondary_point)
@@ -205,7 +205,9 @@ class InfluxDBStorage:
             if points:
                 await asyncio.wait_for(
                     self.write_api.write(
-                        bucket=self.bucket, record=points, write_precision="s"
+                        bucket=self.bucket,
+                        record=points,
+                        write_precision=WritePrecision.S,
                     ),
                     timeout=30,  # Specify timeout duration in seconds
                 )
@@ -299,7 +301,7 @@ class InfluxDBStorage:
             point.time(timestamp, write_precision="s")
 
             await self.write_api.write(
-                bucket=self.bucket, record=point, write_precision="s"
+                bucket=self.bucket, record=point, write_precision=WritePrecision.S
             )
             logger_InfluxDBStorage.debug("Data point written to InfluxDB")
 
@@ -323,7 +325,9 @@ class InfluxDBStorage:
                 secondary_point.time(timestamp, write_precision="s")
 
                 await self.write_api.write(
-                    bucket=self.bucket, record=secondary_point, write_precision="s"
+                    bucket=self.bucket,
+                    record=secondary_point,
+                    write_precision=WritePrecision.S,
                 )
                 logger_InfluxDBStorage.debug(
                     "Secondary data point for primary source written to InfluxDB"

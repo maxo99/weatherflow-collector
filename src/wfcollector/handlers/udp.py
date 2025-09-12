@@ -1,10 +1,11 @@
 # udp.py
 
 
-import config
+import configfrom wfcollector import config, logger, utils
 
 
-from utils.calculate_weather_metrics import CalculateWeatherMetrics
+
+from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
 
 
 import time
@@ -23,8 +24,7 @@ import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 
 
-import logger
-import utils.utils as utils
+from wfcollector import utils
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -39,7 +39,6 @@ logger_UDPHandler = logger.get_module_logger(__name__ + ".UDPHandler")
 
 class UDPHandler(BaseDataHandler):
     def __init__(self, event_manager):
-
         self.collector_type = "collector_udp"
         self.event_manager = event_manager
 

@@ -1,7 +1,7 @@
 # config_validator.py
 
-import config
-import logger
+from wfcollector import config, logger
+
 
 logger_ConfigValidator = logger.get_module_logger()
 

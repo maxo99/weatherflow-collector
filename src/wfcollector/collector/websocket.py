@@ -4,8 +4,8 @@
 WeatherFlow Collector WebSocket Client
 
 This module is part of the WeatherFlow Collector system and is responsible for managing WebSocket
-connections to receive real-time weather data. It handles the establishment of the WebSocket 
-connection, authentication, message reception, and forwarding the data to the appropriate 
+connections to receive real-time weather data. It handles the establishment of the WebSocket
+connection, authentication, message reception, and forwarding the data to the appropriate
 event manager for further processing.
 
 Key Features:
@@ -16,7 +16,7 @@ Key Features:
 
 Usage:
 This WebSocket collector is designed to be used within the WeatherFlow Collector system. It requires
-a valid API token and a configured WebSocket URL to establish a connection with the WeatherFlow 
+a valid API token and a configured WebSocket URL to establish a connection with the WeatherFlow
 WebSocket server.
 
 Dependencies:
@@ -44,24 +44,19 @@ Author: [Your Name or Team's Name]
 Last Update: [Last Update Date]
 
 Note:
-The WebSocket collector is an integral part of the WeatherFlow Collector system and is not intended 
+The WebSocket collector is an integral part of the WeatherFlow Collector system and is not intended
 for standalone use. It should be used in conjunction with other components of the system.
 """
 
-
-import json
 import asyncio
-import websockets
-
-
-import config
-import logger
+import datetime
+import json
 import random
 import time
-import datetime
 
+import websockets
 
-import utils.utils as utils  # Assuming utils contains necessary methods
+from wfcollector import config, logger, utils
 
 logger_WebsocketCollector = logger.get_module_logger(__name__ + ".WebsocketCollector")
 

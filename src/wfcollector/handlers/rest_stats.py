@@ -3,21 +3,21 @@
 """
 WeatherFlow Collector Data Handlers
 
-This module forms a part of the WeatherFlow Collector system, a robust application designed to 
-gather, process, and store weather data from various sources. It caters to diverse data types 
+This module forms a part of the WeatherFlow Collector system, a robust application designed to
+gather, process, and store weather data from various sources. It caters to diverse data types
 and formats, making it an integral component of the WeatherFlow ecosystem.
 
 Key Features:
-- Multi-source data handling: Capable of processing data from UDP broadcasts, WebSocket 
+- Multi-source data handling: Capable of processing data from UDP broadcasts, WebSocket
   streams, and REST API responses.
-- Data normalization: Transforms disparate data formats into a unified structure suitable for 
+- Data normalization: Transforms disparate data formats into a unified structure suitable for
   storage and analysis.
-- InfluxDB integration: Seamlessly stores processed data in InfluxDB, ensuring efficient 
+- InfluxDB integration: Seamlessly stores processed data in InfluxDB, ensuring efficient
   data management and retrieval.
 
 Usage:
-This module is used within the WeatherFlow Collector system and requires data inputs from 
-UDP broadcasts, WebSocket connections, or RESTful APIs. It should be initialized with 
+This module is used within the WeatherFlow Collector system and requires data inputs from
+UDP broadcasts, WebSocket connections, or RESTful APIs. It should be initialized with
 appropriate configurations for each data source and the InfluxDB instance.
 
 Dependencies:
@@ -34,44 +34,28 @@ Classes:
 - InfluxDBStorage: Interfaces with InfluxDB for data storage.
 
 Methods:
-Each class contains specific methods for processing its designated data type and communicating 
-with the InfluxDB. Key methods include process_data(), handle_evt_strike(), handle_obs_st(), 
+Each class contains specific methods for processing its designated data type and communicating
+with the InfluxDB. Key methods include process_data(), handle_evt_strike(), handle_obs_st(),
 and save_data().
 
 Author: [Your Name or Team's Name]
 Last Update: [Last Update Date]
 
 Note:
-This module is part of the WeatherFlow Collector system and is not intended to be used as a 
-standalone script. It requires a running instance of InfluxDB and access to WeatherFlow data 
+This module is part of the WeatherFlow Collector system and is not intended to be used as a
+standalone script. It requires a running instance of InfluxDB and access to WeatherFlow data
 streams.
 """
 
-import config
-
-
-from utils.calculate_weather_metrics import CalculateWeatherMetrics
-
-
-import time
-from pytz import timezone
-import pytz
-from datetime import datetime, timedelta
-import json
-import inspect
-import os
-import asyncio
-import traceback
-
-import multiprocessing
 
 # from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
-from concurrent.futures import ProcessPoolExecutor
+import pytz
+from pytz import timezone
 
-
-import logger
-import utils.utils as utils
+from wfcollector import config, logger, utils
+from wfcollector.calculate_weather_metrics import CalculateWeatherMetrics
 
 logger_BaseDataHandler = logger.get_module_logger(__name__ + ".BaseDataHandler")
 
@@ -122,7 +106,6 @@ class RESTStatsHandler:
     }
 
     def __init__(self, event_manager):
-
         self.collector_type = "collector_stats"  # Directly set the collector type
         self.event_manager = event_manager
 
@@ -214,16 +197,12 @@ class RESTStatsHandler:
                     if value is not None:
                         fields[field_name] = value
                     else:
-                        if (
-                            not config.WEATHERFLOW_COLLECTOR_HANDLER_REST_STATS_SUPPRESS_WARNINGS_ENABLED
-                        ):
+                        if not config.WEATHERFLOW_COLLECTOR_HANDLER_REST_STATS_SUPPRESS_WARNINGS_ENABLED:
                             logger_RESTStatsHandler.warning(
                                 f"Field '{field_name}' is None in {category_name} for station {metadata.get('station_id')}"
                             )
                 else:
-                    if (
-                        not config.WEATHERFLOW_COLLECTOR_HANDLER_REST_STATS_SUPPRESS_WARNINGS_ENABLED
-                    ):
+                    if not config.WEATHERFLOW_COLLECTOR_HANDLER_REST_STATS_SUPPRESS_WARNINGS_ENABLED:
                         logger_RESTStatsHandler.warning(
                             f"Index {index} out of range for field '{field_name}' in {category_name} for station {metadata.get('station_id')}"
                         )

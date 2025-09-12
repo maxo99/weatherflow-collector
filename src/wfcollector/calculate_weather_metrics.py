@@ -3,22 +3,24 @@
 """
 CalculateWeatherMetrics Module for Advanced Weather Data Processing
 
-This module offers a comprehensive suite of static methods under the CalculateWeatherMetrics class, 
-designed to compute a range of weather-related metrics. These metrics include vapor pressure deficit (VPD), 
-dew point, heat index, absolute humidity, visibility index, sea level pressure, wind chill, Beaufort scale rating, 
+This module offers a comprehensive suite of static methods under the CalculateWeatherMetrics class,
+designed to compute a range of weather-related metrics.
+These metrics include vapor pressure deficit (VPD),
+dew point, heat index, absolute humidity, visibility index,
+sea level pressure, wind chill, Beaufort scale rating,
 and frost point, tailored to provide detailed insights from meteorological data.
 
 Key Features:
-- Calculates essential weather metrics from basic meteorological data inputs like temperature, 
+- Calculates essential weather metrics from basic meteorological data inputs like temperature,
   relative humidity, station pressure, and wind speed.
-- Implements both standard and advanced methods for calculating weather phenomena, 
+- Implements both standard and advanced methods for calculating weather phenomena,
   using formulas like the Magnus-Tetens approximation and Buck's Improved Formula.
-- Designed to assist in detailed climate analysis, agricultural planning, meteorological research, 
+- Designed to assist in detailed climate analysis, agricultural planning, meteorological research,
   and environmental monitoring.
 
 Usage:
-This module is intended to be imported and utilized in contexts where weather data is analyzed. 
-It can process individual data points or batches of weather data, returning calculated metrics 
+This module is intended to be imported and utilized in contexts where weather data is analyzed.
+It can process individual data points or batches of weather data, returning calculated metrics
 that offer deeper insights into current and forecasted weather conditions.
 
 Dependencies:
@@ -26,15 +28,17 @@ Dependencies:
 - logging: For logging purposes, especially useful in debugging and operational monitoring.
 
 Example:
-To use this module, simply import it and call the appropriate static methods with your weather data. 
-For instance, `CalculateWeatherMetrics.calculate_vpd(temperature, humidity)` will provide the vapor pressure deficit.
+To use this module, simply import it and call the appropriate static methods with your weather data.
+For instance, `CalculateWeatherMetrics.calculate_vpd(temperature, humidity)`
+ will provide the vapor pressure deficit.
 
 Classes:
 - CalculateWeatherMetrics: Contains all static methods for weather metric calculations.
 
 Methods:
 - calculate_weather_metrics: Orchestrates the calculation of various metrics based on input data.
-- calculate_vpd, calculate_vpd_buck, calculate_dew_point, etc.: Individual methods for specific weather calculations.
+- calculate_vpd, calculate_vpd_buck, calculate_dew_point,
+    etc.: Individual methods for specific weather calculations.
 
 Author: [Your Name]
 Created: [Creation Date]
@@ -43,11 +47,8 @@ Created: [Creation Date]
 # calculate_weather_metrics.py
 
 import math
-import logging
-from datetime import datetime
 
-from logger import get_module_logger
-import utils.utils as utils
+from wfcollector.logger import get_module_logger
 
 logger = get_module_logger(__name__ + ".CalculateWeatherMetrics")
 
@@ -68,73 +69,49 @@ class CalculateWeatherMetrics:
             if vpd is not None:
                 calculated_metrics["calculated_vpd"] = vpd
 
-            dew_point = CalculateWeatherMetrics.calculate_dew_point(
-                temperature, relative_humidity
-            )
+            dew_point = CalculateWeatherMetrics.calculate_dew_point(temperature, relative_humidity)
             if dew_point is not None:
                 calculated_metrics["calculated_dew_point"] = dew_point
 
-            dew_point_buck = CalculateWeatherMetrics.calculate_dew_point_buck(
-                temperature, relative_humidity
-            )
+            dew_point_buck = CalculateWeatherMetrics.calculate_dew_point_buck(temperature, relative_humidity)
             if dew_point_buck is not None:
                 calculated_metrics["calculated_dew_point_buck"] = dew_point_buck
 
-            heat_index = CalculateWeatherMetrics.calculate_heat_index(
-                temperature, relative_humidity
-            )
+            heat_index = CalculateWeatherMetrics.calculate_heat_index(temperature, relative_humidity)
             if heat_index is not None:
                 calculated_metrics["calculated_heat_index"] = heat_index
 
-            absolute_humidity = CalculateWeatherMetrics.calculate_absolute_humidity(
-                temperature, relative_humidity
-            )
+            absolute_humidity = CalculateWeatherMetrics.calculate_absolute_humidity(temperature, relative_humidity)
             if absolute_humidity is not None:
                 calculated_metrics["calculated_absolute_humidity"] = absolute_humidity
 
-            visibility_index = CalculateWeatherMetrics.calculate_visibility_index(
-                temperature, relative_humidity
-            )
+            visibility_index = CalculateWeatherMetrics.calculate_visibility_index(temperature, relative_humidity)
             if visibility_index is not None:
                 calculated_metrics["calculated_visibility_index"] = visibility_index
 
-            frost_point = CalculateWeatherMetrics.calculate_frost_point(
-                temperature, relative_humidity
-            )
+            frost_point = CalculateWeatherMetrics.calculate_frost_point(temperature, relative_humidity)
             if frost_point is not None:
                 calculated_metrics["calculated_frost_point"] = frost_point
 
             if station_pressure is not None:
-                vpd_buck = CalculateWeatherMetrics.calculate_vpd_buck(
-                    temperature, relative_humidity, station_pressure
-                )
+                vpd_buck = CalculateWeatherMetrics.calculate_vpd_buck(temperature, relative_humidity, station_pressure)
                 if vpd_buck is not None:
                     calculated_metrics["calculated_vpd_buck"] = vpd_buck
 
-        if all(
-            param is not None for param in [station_pressure, elevation, temperature]
-        ):
-            sea_level_pressure = CalculateWeatherMetrics.calculate_sea_level_pressure(
-                station_pressure, elevation, temperature
-            )
+        if all(param is not None for param in [station_pressure, elevation, temperature]):
+            sea_level_pressure = CalculateWeatherMetrics.calculate_sea_level_pressure(station_pressure, elevation, temperature)
             if sea_level_pressure is not None:
                 calculated_metrics["calculated_sea_level_pressure"] = sea_level_pressure
 
         if temperature is not None and wind_speed_mps is not None:
-            wind_chill = CalculateWeatherMetrics.calculate_wind_chill(
-                temperature, wind_speed_mps
-            )
+            wind_chill = CalculateWeatherMetrics.calculate_wind_chill(temperature, wind_speed_mps)
             if wind_chill is not None:
                 calculated_metrics["calculated_wind_chill"] = wind_chill
 
         if wind_speed_mps is not None:
-            beaufort_scale_rating = (
-                CalculateWeatherMetrics.calculate_beaufort_scale_rating(wind_speed_mps)
-            )
+            beaufort_scale_rating = CalculateWeatherMetrics.calculate_beaufort_scale_rating(wind_speed_mps)
             if beaufort_scale_rating is not None:
-                calculated_metrics[
-                    "calculated_beaufort_scale_rating"
-                ] = beaufort_scale_rating
+                calculated_metrics["calculated_beaufort_scale_rating"] = beaufort_scale_rating
 
         required_frost_metrics = [
             "calculated_vpd",
@@ -143,12 +120,7 @@ class CalculateWeatherMetrics:
             "calculated_wind_chill",
             "calculated_frost_point",
         ]
-        if all(
-            metric in calculated_metrics for metric in required_frost_metrics
-        ) and all(
-            param is not None
-            for param in [temperature, relative_humidity, wind_speed_mps]
-        ):
+        if all(metric in calculated_metrics for metric in required_frost_metrics) and all(param is not None for param in [temperature, relative_humidity, wind_speed_mps]):
             frost_risk = CalculateWeatherMetrics.calculate_frost_risk(
                 temperature,
                 calculated_metrics["calculated_dew_point"],
@@ -191,19 +163,12 @@ class CalculateWeatherMetrics:
 
     @staticmethod
     def calculate_dew_point(temperature, relative_humidity):
-        if (
-            temperature is None
-            or relative_humidity is None
-            or relative_humidity < 0
-            or relative_humidity > 100
-        ):
+        if temperature is None or relative_humidity is None or relative_humidity < 0 or relative_humidity > 100:
             return None
         a = 17.27
         b = 237.7
         try:
-            alpha = ((a * temperature) / (b + temperature)) + math.log(
-                relative_humidity / 100.0
-            )
+            alpha = ((a * temperature) / (b + temperature)) + math.log(relative_humidity / 100.0)
             dew_point = (b * alpha) / (a - alpha)
             return dew_point
         except (ValueError, ZeroDivisionError):
@@ -211,21 +176,14 @@ class CalculateWeatherMetrics:
 
     @staticmethod
     def calculate_dew_point_buck(temperature, relative_humidity):
-        if (
-            temperature is None
-            or relative_humidity is None
-            or relative_humidity < 0
-            or relative_humidity > 100
-        ):
+        if temperature is None or relative_humidity is None or relative_humidity < 0 or relative_humidity > 100:
             return None
         a = 6.1121
         b = 18.678
         c = 257.14  # degrees Celsius
         d = 234.5  # degrees Celsius
         try:
-            gamma = math.log(relative_humidity / 100.0) + (b - temperature / d) * (
-                temperature / (c + temperature)
-            )
+            gamma = math.log(relative_humidity / 100.0) + (b - temperature / d) * (temperature / (c + temperature))
             dew_point = c * gamma / (b - gamma)
             return dew_point
         except (ValueError, ZeroDivisionError):
@@ -267,9 +225,7 @@ class CalculateWeatherMetrics:
     def calculate_absolute_humidity(temperature, relative_humidity):
         if temperature is None or relative_humidity is None:
             return None
-        es = CalculateWeatherMetrics.calculate_saturation_vapor_pressure_goff_gratch(
-            temperature
-        )
+        es = CalculateWeatherMetrics.calculate_saturation_vapor_pressure_goff_gratch(temperature)
         if es is None:
             return None
         ea = (relative_humidity / 100.0) * es
@@ -284,9 +240,7 @@ class CalculateWeatherMetrics:
     def calculate_visibility_index(temperature, relative_humidity):
         if temperature is None or relative_humidity is None:
             return None
-        dew_point = CalculateWeatherMetrics.calculate_dew_point_buck(
-            temperature, relative_humidity
-        )
+        dew_point = CalculateWeatherMetrics.calculate_dew_point_buck(temperature, relative_humidity)
         if dew_point is not None:
             dew_point_difference = temperature - dew_point
             return dew_point_difference
@@ -297,9 +251,7 @@ class CalculateWeatherMetrics:
         if any(param is None for param in [station_pressure, altitude, temperature]):
             return None
         temperature_kelvin = temperature + 273.15
-        sea_level_pressure = station_pressure * (
-            1 + ((0.0065 * altitude) / temperature_kelvin)
-        ) ** (9.80665 / (287.05 * 0.0065))
+        sea_level_pressure = station_pressure * (1 + ((0.0065 * altitude) / temperature_kelvin)) ** (9.80665 / (287.05 * 0.0065))
         return sea_level_pressure
 
     @staticmethod
@@ -308,12 +260,7 @@ class CalculateWeatherMetrics:
             return None
         if temperature <= 10 and wind_speed_mps >= 0.5:
             wind_speed_kmh = wind_speed_mps * 3.6
-            wind_chill = (
-                13.12
-                + (0.6215 * temperature)
-                - (11.37 * (wind_speed_kmh**0.16))
-                + (0.3965 * temperature * (wind_speed_kmh**0.16))
-            )
+            wind_chill = 13.12 + (0.6215 * temperature) - (11.37 * (wind_speed_kmh**0.16)) + (0.3965 * temperature * (wind_speed_kmh**0.16))
             return wind_chill
         return temperature
 
@@ -342,20 +289,12 @@ class CalculateWeatherMetrics:
 
     @staticmethod
     def calculate_frost_point(temperature, relative_humidity):
-        if (
-            temperature is None
-            or relative_humidity is None
-            or relative_humidity < 0
-            or relative_humidity > 100
-            or temperature >= 0
-        ):
+        if temperature is None or relative_humidity is None or relative_humidity < 0 or relative_humidity > 100 or temperature >= 0:
             return None
         a = 17.27
         b = 237.7
         try:
-            alpha = ((a * temperature) / (b + temperature)) + math.log(
-                relative_humidity / 100.0
-            )
+            alpha = ((a * temperature) / (b + temperature)) + math.log(relative_humidity / 100.0)
             frost_point = (b * alpha) / (a - alpha)
             return frost_point
         except (ValueError, ZeroDivisionError):
@@ -380,12 +319,8 @@ class CalculateWeatherMetrics:
     def calculate_station_pressure_from_sea_level(sea_level_pressure, elevation):
         if sea_level_pressure is None or elevation is None:
             return None
-        standard_temperature_kelvin = (
-            288.15  # Standard temperature at sea level in Kelvin
-        )
-        station_pressure = sea_level_pressure / (
-            1 + ((0.0065 * elevation) / standard_temperature_kelvin)
-        ) ** (9.80665 / (287.05 * 0.0065))
+        standard_temperature_kelvin = 288.15  # Standard temperature at sea level in Kelvin
+        station_pressure = sea_level_pressure / (1 + ((0.0065 * elevation) / standard_temperature_kelvin)) ** (9.80665 / (287.05 * 0.0065))
         return station_pressure
 
     @staticmethod

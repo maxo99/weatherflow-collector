@@ -1,12 +1,10 @@
 # collector_rest_observations_device.py
 
 import asyncio
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
-import config
-import utils.utils as utils
-import logger
+from wfcollector import config, logger, utils
 
 logger_RESTObservationsDeviceCollector = logger.get_module_logger(
     __name__ + ".RESTObservationsDeviceCollector"

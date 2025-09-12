@@ -4,7 +4,7 @@
 WeatherFlow Collector REST Forecasts Client
 
 This module is part of the WeatherFlow Collector system and is responsible for retrieving weather forecasts
-from WeatherFlow's REST API. It periodically fetches forecast data for enabled weather stations and publishes 
+from WeatherFlow's REST API. It periodically fetches forecast data for enabled weather stations and publishes
 the data with relevant metadata for further processing.
 
 Key Features:
@@ -42,20 +42,15 @@ The RestForcecastsCollector is specifically designed for integration with the We
 It is tailored to interact with WeatherFlow's REST API and is not intended for standalone use.
 """
 
-import aiohttp
 import asyncio
-import logging
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 
-import config
-import utils.utils as utils
+from wfcollector import config, logger, utils
 
+# from utils.calculate_weather_metrics import CalculateWeatherMetrics
 
-#from utils.calculate_weather_metrics import CalculateWeatherMetrics
-
-import logger
 
 logger_CollectorRestForcecasts = logger.get_module_logger(
     __name__ + ".RestForcecastsCollector"

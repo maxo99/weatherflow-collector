@@ -36,24 +36,14 @@ Author: Dave Schmid
 Created: 2023-12-17
 """
 
-
-import math
-
-
-import aiohttp
 import asyncio
-
-
-
+import logging  # Add this import
 import time
 from functools import wraps
 
+import aiohttp
 
-import logging  # Add this import
-from datetime import datetime
-
-import logger
-import config
+from wfcollector import config, logger
 
 logger_Utils = logger.get_module_logger(__name__ + ".Utils")
 

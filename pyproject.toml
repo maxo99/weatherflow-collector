@@ -13,25 +13,17 @@ dependencies = [
     "numpy==1.26.4",
     "pytz==2024.1",
     "websockets==12.0",
+    "wfcollector",
 ]
 [dependency-groups]
 dev = ["colorama", "pytest", "pytest-cov"]
 
+[tool.uv_build]
+src = "src"
 
 [build-system]
 requires = ["uv_build>=0.8.0,<0.9.0"]
 build-backend = "uv_build"
-
-[tool.setuptools.packages.find]
-where = ['src']
-include = ['wfcollector*']
-
-
-[tool.uv.workspace]
-members = ["wfcollector"]
-
-[tool.uv.sources]
-wfcollector = { workspace = true }
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -57,3 +49,59 @@ exclude = [
     "**/*.egg-info",
     "**/*.ruff_cache",
 ]
+
+[tool.ruff]
+line-length = 180
+target-version = "py311"
+
+[tool.pylint.messages_control]
+disable = [
+    "C0114", # missing-module-docstring
+    "C0115", # missing-class-docstring
+    "C0116", # missing-function-docstring
+    "R0903", # too-few-public-methods
+    "R0913", # too-many-arguments
+    "R0914", # too-many-locals
+    "W1203", # logging-format-interpolation
+    "W0718", # exception-escape
+    "W0511", # TODOs
+]
+
+[tool.pylint.basic]
+good-names = [
+    "i",
+    "j",
+    "k",
+    "ex",
+    "Run",
+    "_",
+    "x",
+    "y",
+    "z",
+    "id",
+    "db",
+    "pk",
+    "ok",
+    "T",
+    "R",
+    "Mw",
+]
+
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+# [tool.ruff.lint]
+# fixable = ["F401"]
+# unfixable = ["ALL"]
