@@ -1,11 +1,12 @@
 import asyncio
-import websockets
 import json
 import time
 
 import config
-from wfcollector import utils
 import logger
+import websockets
+
+from wfcollector import utils
 
 logger_WebSocketServerProvider = logger.get_module_logger(
     __name__ + ".WebSocketServerProvider"

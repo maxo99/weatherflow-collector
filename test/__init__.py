@@ -1,7 +1,8 @@
 import os
-import requests
-import pandas as pd
+
 import influxdb_client
+import pandas as pd
+import requests
 
 
 def check_influxdb_health(base_url: str):

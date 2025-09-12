@@ -48,8 +48,6 @@ from datetime import datetime, timedelta
 
 from wfcollector import config, logger, utils
 
-
-
 _logger = logger.get_module_logger(__name__ + ".RestForcecastsCollector")
 
 
@@ -70,9 +68,7 @@ class RestForcecastsCollector:
             url = f"{self.base_url}?station_id={station_id}&token={self.api_key}"
             _logger.debug(f"Fetching data for station ID {station_id} from URL: {url}")
 
-            json_data = await utils.fetch_data_from_url(
-                url, self.collector_type, self.event_manager
-                )
+            json_data = await utils.fetch_data_from_url(url, self.collector_type, self.event_manager)
 
             if json_data:
                 _logger.debug(f"Received JSON data for station ID {station_id}")

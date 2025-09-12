@@ -2,7 +2,6 @@
 
 from wfcollector import config, logger
 
-
 logger_ConfigValidator = logger.get_module_logger()
 
 

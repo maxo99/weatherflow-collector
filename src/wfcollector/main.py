@@ -43,8 +43,6 @@ Modifications may be required for use with other systems or data sources.
 """
 
 import asyncio
-from wfcollector import config
-from wfcollector import logger
 
 from collector.rest_export import RestExportCollector
 from collector.rest_forecasts import RestForcecastsCollector
@@ -54,17 +52,18 @@ from collector.rest_observations_station import RESTObservationsStationCollector
 from collector.rest_stats import RestStatsCollector
 from collector.udp import UDPCollector
 from collector.websocket import WebsocketCollector
+from config_validator import validate_all
 from event_manager import EventManager
+from handlers.handler import Handler
+from handlers.system_metrics import SystemMetricsHandler
 from processor.collector_data import CollectorDataProcessor
 from processor.export import ExportProcessor
 from provider.websocket_server import WebSocketServerProvider
 from station_metadata_manager import StationMetadataManager
 from storage.file import FileStorage
-from handlers.handler import Handler
 from storage.influxdb import InfluxDBStorage
-from handlers.system_metrics import SystemMetricsHandler
-from config_validator import validate_all
 
+from wfcollector import config, logger
 
 # Initialize logger
 logger_main = logger.get_module_logger()

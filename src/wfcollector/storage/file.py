@@ -41,11 +41,10 @@ or extended for broader applications or different data formats as needed.
 
 import json
 import os
-from datetime import datetime
 import time
+from datetime import datetime
 
 from wfcollector import config, logger, utils
-
 
 logger_FileStorage = logger.get_module_logger(__name__ + ".FileStorage")
 

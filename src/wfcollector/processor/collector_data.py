@@ -44,8 +44,9 @@ processing diverse data from meteorological sensors.
 
 import copy
 
-from wfcollector import utils
 import logger
+
+from wfcollector import utils
 
 logger_CollectorDataProcessor = logger.get_module_logger(
     __name__ + ".CollectorDataProcessor"

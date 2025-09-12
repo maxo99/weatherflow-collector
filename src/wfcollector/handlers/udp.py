@@ -26,7 +26,7 @@ class BaseDataHandler:
         raise NotImplementedError("This method should be implemented by subclasses.")
 
 
-logger_UDPHandler = logger.get_module_logger(__name__ + ".UDPHandler")
+_logger = logger.get_module_logger(__name__ + ".UDPHandler")
 
 
 class UDPHandler(BaseDataHandler):
@@ -46,7 +46,7 @@ class UDPHandler(BaseDataHandler):
         }
 
     async def process_data(self, full_data):
-        logger_UDPHandler.debug("Processing data in UDPHandler")
+        _logger.debug("Processing data in UDPHandler")
 
         # Extract the data type from the nested 'data'
         data_type = full_data.get("data", {}).get("type")
@@ -55,16 +55,16 @@ class UDPHandler(BaseDataHandler):
             handler = self.data_handlers[data_type]
             await handler(full_data)  # Pass the entire full_data structure
         else:
-            logger_UDPHandler.error(f"Unknown data type: {data_type}")
+            _logger.error(f"Unknown data type: {data_type}")
 
-        logger_UDPHandler.debug("Data processed by UDPHandler")
+        _logger.debug("Data processed by UDPHandler")
 
     # @utils.measure_execution_time("handle_rapid_wind")
     @utils.calculate_timestamp_delta("handle_rapid_wind")
     async def handle_rapid_wind(self, full_data):
-        logger_UDPHandler.debug(f"rapid_wind data: {full_data}")
+        _logger.debug(f"rapid_wind data: {full_data}")
 
-        logger_UDPHandler.debug(f"event_manager ID: {id(self.event_manager)}")
+        _logger.debug(f"event_manager ID: {id(self.event_manager)}")
 
         # Extract serial number and observation data
         serial_number = full_data.get("data", {}).get("serial_number")
@@ -81,11 +81,11 @@ class UDPHandler(BaseDataHandler):
 
             # Extract station information
             station_info = full_data.get("station_info", {})
-            logger_UDPHandler.debug(f"Station info: {station_info}")
+            _logger.debug(f"Station info: {station_info}")
 
             # Extract device information
             device_info = full_data.get("device_info", {})
-            logger_UDPHandler.debug(f"Device info: {device_info}")
+            _logger.debug(f"Device info: {device_info}")
 
             # Construct the tags
             tags = {
@@ -108,7 +108,7 @@ class UDPHandler(BaseDataHandler):
                 if key in device_info and device_info[key] is not None:
                     tags[key] = device_info[key]
 
-            logger_UDPHandler.debug(f"Tags: {tags}")
+            _logger.debug(f"Tags: {tags}")
 
             obs_fields = utils.normalize_fields(obs_fields)
 
@@ -128,9 +128,9 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_rapid_wind",
             )
 
-            logger_UDPHandler.debug(f"Published rapid_wind data to event manager for device {serial_number}")
+            _logger.debug(f"Published rapid_wind data to event manager for device {serial_number}")
 
-            logger_UDPHandler.debug(f"collector_data_with_meta: {collector_data_with_meta}")
+            _logger.debug(f"collector_data_with_meta: {collector_data_with_meta}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -142,93 +142,93 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(f"Invalid or incomplete rapid_wind data received: {full_data}")
+            _logger.warning(f"Invalid or incomplete rapid_wind data received: {full_data}")
 
     # @utils.measure_execution_time("handle_evt_strike")
     @utils.calculate_timestamp_delta("handle_evt_strike")
     async def handle_evt_strike(self, full_data):
-        logger_UDPHandler.debug(f"evt_strike data: {full_data}")
+        _logger.debug(f"evt_strike data: {full_data}")
 
         # Extract serial number and event data
         serial_number = full_data.get("data", {}).get("serial_number")
         evt_data = full_data.get("data", {}).get("evt", [])
 
-        if len(evt_data) == 3:
-            timestamp, distance, energy = evt_data
+        if len(evt_data) != 3:
+            _logger.warning(f"Invalid or incomplete evt_strike data received: {full_data}")
+            return
 
-            evt_fields = {
-                "timestamp": timestamp,
-                "distance": distance,
-                "energy": energy,
-            }
+        timestamp, distance, energy = evt_data
 
-            # Extract station information
-            station_info = full_data.get("station_info", {})
-            logger_UDPHandler.debug(f"Station info: {station_info}")
+        evt_fields = {
+            "timestamp": timestamp,
+            "distance": distance,
+            "energy": energy,
+        }
 
-            # Extract device information
-            device_info = full_data.get("device_info", {})
-            logger_UDPHandler.debug(f"Device info: {device_info}")
+        # Extract station information
+        station_info = full_data.get("station_info", {})
+        _logger.debug(f"Station info: {station_info}")
 
-            # Construct the tags
-            tags = {
-                "collector_type": self.collector_type,
-                "station_name": station_info.get("station_name"),
-                "station_latitude": station_info.get("station_latitude"),
-                "station_longitude": station_info.get("station_longitude"),
-                "station_elevation": station_info.get("station_elevation"),
-                "station_time_zone": station_info.get("station_time_zone"),
-                "device_id": device_info.get("device_id"),
-            }
+        # Extract device information
+        device_info = full_data.get("device_info", {})
+        _logger.debug(f"Device info: {device_info}")
 
-            # Add device information as tags, if available
-            for key in [
-                "device_id",
-                "device_name",
-                "device_type",
-                "serial_number",
-            ]:
-                if key in device_info and device_info[key] is not None:
-                    tags[key] = device_info[key]
+        # Construct the tags
+        tags = {
+            "collector_type": self.collector_type,
+            "station_name": station_info.get("station_name"),
+            "station_latitude": station_info.get("station_latitude"),
+            "station_longitude": station_info.get("station_longitude"),
+            "station_elevation": station_info.get("station_elevation"),
+            "station_time_zone": station_info.get("station_time_zone"),
+            "device_id": device_info.get("device_id"),
+        }
 
-            logger_UDPHandler.debug(f"Tags: {tags}")
+        # Add device information as tags, if available
+        for key in [
+            "device_id",
+            "device_name",
+            "device_type",
+            "serial_number",
+        ]:
+            if key in device_info and device_info[key] is not None:
+                tags[key] = device_info[key]
 
-            evt_fields = utils.normalize_fields(evt_fields)
+        _logger.debug(f"Tags: {tags}")
 
-            collector_data_with_meta = {
-                "data_type": "single",  # or "batch" for batch processing
-                "measurement": "weatherflow_evt_strike",
-                "tags": tags,
-                "fields": evt_fields,
-                "timestamp": timestamp,
-                # Include other necessary data or metadata
-            }
+        evt_fields = utils.normalize_fields(evt_fields)
 
-            # Publish the data using the event manager
-            await self.event_manager.publish(
-                "influxdb_storage_event",
-                collector_data_with_meta,
-                publisher="UDPHandler.handle_evt_strike",
-            )
+        collector_data_with_meta = {
+            "data_type": "single",  # or "batch" for batch processing
+            "measurement": "weatherflow_evt_strike",
+            "tags": tags,
+            "fields": evt_fields,
+            "timestamp": timestamp,
+            # Include other necessary data or metadata
+        }
 
-            logger_UDPHandler.debug(f"Published rapid_wind data to event manager for device {serial_number}")
+        # Publish the data using the event manager
+        await self.event_manager.publish(
+            "influxdb_storage_event",
+            collector_data_with_meta,
+            publisher="UDPHandler.handle_evt_strike",
+        )
 
-            # Setting attirbutes for the delta timestamp decorator
+        _logger.debug(f"Published rapid_wind data to event manager for device {serial_number}")
 
-            # Loop through tags and set them as attributes
-            for key, value in tags.items():
-                setattr(self, f"current_{key}", value)
+        # Setting attirbutes for the delta timestamp decorator
 
-            # Update the current state
-            self.current_timestamp = timestamp
+        # Loop through tags and set them as attributes
+        for key, value in tags.items():
+            setattr(self, f"current_{key}", value)
 
-        else:
-            logger_UDPHandler.warning(f"Invalid or incomplete evt_strike data received: {full_data}")
+        # Update the current state
+        self.current_timestamp = timestamp
 
     # @utils.measure_execution_time("handle_device_status")
     @utils.calculate_timestamp_delta("handle_device_status")
     async def handle_device_status(self, full_data):
-        logger_UDPHandler.debug(f"device_status data: {full_data}")
+        _logger.debug(f"device_status data: {full_data}")
 
         # Extract device status data and serial numbers
         device_data = full_data.get("data", {})
@@ -253,11 +253,11 @@ class UDPHandler(BaseDataHandler):
 
         # Extract station information
         station_info = full_data.get("station_info", {})
-        logger_UDPHandler.debug(f"Station info: {station_info}")
+        _logger.debug(f"Station info: {station_info}")
 
         # Extract device information
         device_info = full_data.get("device_info", {})
-        logger_UDPHandler.debug(f"Device info: {device_info}")
+        _logger.debug(f"Device info: {device_info}")
 
         # Construct the tags
         tags = {
@@ -280,7 +280,7 @@ class UDPHandler(BaseDataHandler):
             if key in device_info and device_info[key] is not None:
                 tags[key] = device_info[key]
 
-        logger_UDPHandler.debug(f"Tags: {tags}")
+        _logger.debug(f"Tags: {tags}")
 
         fields = utils.normalize_fields(fields)
 
@@ -300,7 +300,7 @@ class UDPHandler(BaseDataHandler):
             publisher="UDPHandler.handle_device_status",
         )
 
-        logger_UDPHandler.debug(f"Published weatherflow_device_status data to event manager for device {serial_number}")
+        _logger.debug(f"Published weatherflow_device_status data to event manager for device {serial_number}")
 
         # Setting attirbutes for the delta timestamp decorator
 
@@ -314,7 +314,7 @@ class UDPHandler(BaseDataHandler):
     # @utils.measure_execution_time("handle_hub_status")
     @utils.calculate_timestamp_delta("handle_hub_status")
     async def handle_hub_status(self, data):
-        logger_UDPHandler.debug(f"Hub status data: {data}")
+        _logger.debug(f"Hub status data: {data}")
 
         # Extract hub status data and serial number
         hub_status_data = data.get("data", {})
@@ -363,7 +363,7 @@ class UDPHandler(BaseDataHandler):
 
         # Extract station information
         station_info = data.get("station_info", {})
-        logger_UDPHandler.debug(f"Station info: {station_info}")
+        _logger.debug(f"Station info: {station_info}")
 
         tags = {
             "collector_type": self.collector_type,
@@ -375,7 +375,7 @@ class UDPHandler(BaseDataHandler):
             "hub_sn": hub_sn,
         }
 
-        logger_UDPHandler.debug(f"Tags: {tags}")
+        _logger.debug(f"Tags: {tags}")
 
         fields = utils.normalize_fields(fields)
 
@@ -395,7 +395,7 @@ class UDPHandler(BaseDataHandler):
             publisher="UDPHandler.handle_hub_status",
         )
 
-        logger_UDPHandler.debug(f"Published weatherflow_hub_status data to event manager for device {hub_sn}")
+        _logger.debug(f"Published weatherflow_hub_status data to event manager for device {hub_sn}")
 
         # Setting attirbutes for the delta timestamp decorator
 
@@ -465,11 +465,11 @@ class UDPHandler(BaseDataHandler):
 
             # Extract station information
             station_info = full_data.get("station_info", {})
-            logger_UDPHandler.debug(f"Station info: {station_info}")
+            _logger.debug(f"Station info: {station_info}")
 
             # Extract device information
             device_info = full_data.get("device_info", {})
-            logger_UDPHandler.debug(f"Device info: {device_info}")
+            _logger.debug(f"Device info: {device_info}")
 
             # Construct tags with station information
             tags = {
@@ -493,7 +493,7 @@ class UDPHandler(BaseDataHandler):
                 if key in device_info and device_info[key] is not None:
                     tags[key] = device_info[key]
 
-            logger_UDPHandler.debug(f"Tags: {tags}")
+            _logger.debug(f"Tags: {tags}")
 
             # Normalize the fields
             fields = utils.normalize_fields(fields)
@@ -514,7 +514,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_obs_st",
             )
 
-            logger_UDPHandler.debug(f"Published weatherflow_obs data to event manager for device {serial_number}")
+            _logger.debug(f"Published weatherflow_obs data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -526,7 +526,7 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(f"Invalid or incomplete obs_st data received: {full_data}")
+            _logger.warning(f"Invalid or incomplete obs_st data received: {full_data}")
 
     # @utils.measure_execution_time("handle_obs_air")
     @utils.calculate_timestamp_delta("handle_obs_air")
@@ -576,11 +576,11 @@ class UDPHandler(BaseDataHandler):
 
             # Extract station information
             station_info = full_data.get("station_info", {})
-            logger_UDPHandler.debug(f"Station info: {station_info}")
+            _logger.debug(f"Station info: {station_info}")
 
             # Extract device information
             device_info = full_data.get("device_info", {})
-            logger_UDPHandler.debug(f"Device info: {device_info}")
+            _logger.debug(f"Device info: {device_info}")
 
             # Construct tags with station information
             tags = {
@@ -604,7 +604,7 @@ class UDPHandler(BaseDataHandler):
                 if key in device_info and device_info[key] is not None:
                     tags[key] = device_info[key]
 
-            logger_UDPHandler.debug(f"Tags: {tags}")
+            _logger.debug(f"Tags: {tags}")
 
             # Normalize the fields
             fields = utils.normalize_fields(fields)
@@ -625,7 +625,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_obs_air",
             )
 
-            logger_UDPHandler.debug(f"Published weatherflow_obs_air data to event manager for device {serial_number}")
+            _logger.debug(f"Published weatherflow_obs_air data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -637,7 +637,7 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(f"Invalid or incomplete obs_air data received: {full_data}")
+            _logger.warning(f"Invalid or incomplete obs_air data received: {full_data}")
 
     # @utils.measure_execution_time("handle_obs_sky")
     @utils.calculate_timestamp_delta("handle_obs_sky")
@@ -683,11 +683,11 @@ class UDPHandler(BaseDataHandler):
 
             # Extract station information
             station_info = full_data.get("station_info", {})
-            logger_UDPHandler.debug(f"Station info: {station_info}")
+            _logger.debug(f"Station info: {station_info}")
 
             # Extract device information
             device_info = full_data.get("device_info", {})
-            logger_UDPHandler.debug(f"Device info: {device_info}")
+            _logger.debug(f"Device info: {device_info}")
 
             # Construct tags with station information
             tags = {
@@ -711,7 +711,7 @@ class UDPHandler(BaseDataHandler):
                 if key in device_info and device_info[key] is not None:
                     tags[key] = device_info[key]
 
-            logger_UDPHandler.debug(f"Tags: {tags}")
+            _logger.debug(f"Tags: {tags}")
 
             # Normalize the fields
             fields = utils.normalize_fields(fields)
@@ -732,7 +732,7 @@ class UDPHandler(BaseDataHandler):
                 publisher="UDPHandler.handle_obs_sky",
             )
 
-            logger_UDPHandler.debug(f"Published weatherflow_obs_sky data to event manager for device {serial_number}")
+            _logger.debug(f"Published weatherflow_obs_sky data to event manager for device {serial_number}")
 
             # Setting attirbutes for the delta timestamp decorator
 
@@ -744,4 +744,4 @@ class UDPHandler(BaseDataHandler):
             self.current_timestamp = timestamp
 
         else:
-            logger_UDPHandler.warning(f"Invalid or incomplete obs_sky data received: {full_data}")
+            _logger.warning(f"Invalid or incomplete obs_sky data received: {full_data}")

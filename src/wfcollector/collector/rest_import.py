@@ -1,9 +1,8 @@
 import asyncio
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 
 from wfcollector import config, logger, utils
-
 
 logger_RestImportClient = logger.get_module_logger(__name__ + ".RestImportCollector")
 

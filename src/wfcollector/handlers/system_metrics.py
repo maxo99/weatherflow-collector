@@ -1,7 +1,8 @@
 import time
-import logger
 
-logger_SystemMetricsHandler = logger.get_module_logger(__name__)
+from wfcollector import logger
+
+_logger = logger.get_module_logger(__name__)
 
 
 class SystemMetricsHandler:
@@ -12,7 +13,7 @@ class SystemMetricsHandler:
         """
         Coroutine to handle the update from the event manager.
         """
-        logger_SystemMetricsHandler.debug("Processing metrics data update.")
+        _logger.debug("Processing metrics data update.")
         try:
             # Prepare the message for the InfluxDBStorage handler
             influxdb_message = self.process_metrics(metrics_data)
@@ -24,7 +25,7 @@ class SystemMetricsHandler:
                     publisher="SystemMetricsHandler.update",
                 )
         except Exception as e:
-            logger_SystemMetricsHandler.error(f"Error processing metrics data: {e}")
+            _logger.error(f"Error processing metrics data: {e}")
 
     def process_metrics(self, metrics_data):
         """
@@ -32,7 +33,7 @@ class SystemMetricsHandler:
         """
         required_fields = ["rate", "errors", "duration", "metric_name", "module_name"]
         if not all(field in metrics_data for field in required_fields):
-            logger_SystemMetricsHandler.error("Missing required fields in metrics data")
+            _logger.error("Missing required fields in metrics data")
             return None  # Skip processing if required fields are missing
 
         # Prepare the data for the InfluxDBStorage message
@@ -69,4 +70,4 @@ class SystemMetricsHandler:
         Close any resources, if necessary.
         """
         # Perform any necessary cleanup
-        logger_SystemMetricsHandler.info("SystemMetricsHandler cleanup completed")
+        _logger.info("SystemMetricsHandler cleanup completed")

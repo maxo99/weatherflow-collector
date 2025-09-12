@@ -67,6 +67,12 @@ disable = [
     "W0511", # TODOs
 ]
 
+
+
+
+[tool.pylint.format]
+max-line-length = 180
+
 [tool.pylint.basic]
 good-names = [
     "i",
@@ -102,6 +108,5 @@ ignore = [
     "E501", # line too long (handled by formatter)
 ]
 
-# [tool.ruff.lint]
-# fixable = ["F401"]
-# unfixable = ["ALL"]
+fixable = ["I001"]
+unfixable = ["ALL"]
