@@ -3,21 +3,21 @@
 """
 WeatherFlow Collector Data Handlers
 
-This module forms a part of the WeatherFlow Collector system, a robust application designed to 
-gather, process, and store weather data from various sources. It caters to diverse data types 
+This module forms a part of the WeatherFlow Collector system, a robust application designed to
+gather, process, and store weather data from various sources. It caters to diverse data types
 and formats, making it an integral component of the WeatherFlow ecosystem.
 
 Key Features:
-- Multi-source data handling: Capable of processing data from UDP broadcasts, WebSocket 
+- Multi-source data handling: Capable of processing data from UDP broadcasts, WebSocket
   streams, and REST API responses.
-- Data normalization: Transforms disparate data formats into a unified structure suitable for 
+- Data normalization: Transforms disparate data formats into a unified structure suitable for
   storage and analysis.
-- InfluxDB integration: Seamlessly stores processed data in InfluxDB, ensuring efficient 
+- InfluxDB integration: Seamlessly stores processed data in InfluxDB, ensuring efficient
   data management and retrieval.
 
 Usage:
-This module is used within the WeatherFlow Collector system and requires data inputs from 
-UDP broadcasts, WebSocket connections, or RESTful APIs. It should be initialized with 
+This module is used within the WeatherFlow Collector system and requires data inputs from
+UDP broadcasts, WebSocket connections, or RESTful APIs. It should be initialized with
 appropriate configurations for each data source and the InfluxDB instance.
 
 Dependencies:
@@ -34,50 +34,42 @@ Classes:
 - InfluxDBStorage: Interfaces with InfluxDB for data storage.
 
 Methods:
-Each class contains specific methods for processing its designated data type and communicating 
-with the InfluxDB. Key methods include process_data(), handle_evt_strike(), handle_obs_st(), 
+Each class contains specific methods for processing its designated data type and communicating
+with the InfluxDB. Key methods include process_data(), handle_evt_strike(), handle_obs_st(),
 and save_data().
 
 Author: [Your Name or Team's Name]
 Last Update: [Last Update Date]
 
 Note:
-This module is part of the WeatherFlow Collector system and is not intended to be used as a 
-standalone script. It requires a running instance of InfluxDB and access to WeatherFlow data 
+This module is part of the WeatherFlow Collector system and is not intended to be used as a
+standalone script. It requires a running instance of InfluxDB and access to WeatherFlow data
 streams.
 """
 
-import config
-
-from influxdb_client import InfluxDBClient, Point, WriteOptions, DeleteService
-from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
-
+import asyncio
+import inspect
+import json
+import os
 
 # from influxdb_client.client.write_api import ASYNCHRONOUS
-
-
 # Import necessary libraries for InfluxDB communication and others
-
 import time
-import pytz
-from datetime import datetime, timedelta
-import json
-import inspect
-import os
-import asyncio
 import traceback
+from datetime import datetime, timedelta
 
+import pytz
+from wfcollector.utils.utils as utils
+from influxdb_client import DeleteService, InfluxDBClient, Point, WriteOptions
+from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
 
-import logger
-import utils.utils as utils
-
+from wfcollector import config, logger
 
 logger_InfluxDBStorage = logger.get_module_logger(__name__ + ".InfluxDBStorage")
 
 
 class InfluxDBStorage:
     def __init__(self, event_manager, url, token, org, bucket):
-
         self.event_manager = event_manager
 
         # Configure write options using values from config.py
@@ -164,17 +156,16 @@ class InfluxDBStorage:
 
                 # If timestamp is not provided, use current time
                 if timestamp is None:
-                    print("Timestamp not provided, using current time")
                     timestamp = datetime.now()  # Current time in epoch seconds
-                    logger_InfluxDBStorage.debug(
+                    logger_InfluxDBStorage.warning(
                         "Timestamp not provided, using current time"
                     )
                 elif isinstance(timestamp, (int, float)):
                     # If timestamp is an integer or float, convert it to a datetime object
                     timestamp = datetime.fromtimestamp(timestamp)
-                    logger_InfluxDBStorage.debug(
+                    logger_InfluxDBStorage.warning(
                         f"Timestamp provided as epoch seconds: {timestamp}"
-                    ) 
+                    )
 
                 # Sort tags for consistency
                 sorted_tags = dict(sorted(tags.items()))
@@ -285,17 +276,16 @@ class InfluxDBStorage:
             # logger_InfluxDBStorage.debug(f"Normalized Fields: {fields}")
 
             if timestamp is None:
-                print("Timestamp not provided, using current time")
                 timestamp = datetime.now()  # Current time in epoch seconds
-                logger_InfluxDBStorage.debug(
+                logger_InfluxDBStorage.warning(
                     "Timestamp not provided, using current time"
                 )
             elif isinstance(timestamp, (int, float)):
                 # If timestamp is an integer or float, convert it to a datetime object
                 timestamp = datetime.fromtimestamp(timestamp)
-                logger_InfluxDBStorage.debug(
+                logger_InfluxDBStorage.warning(
                     f"Timestamp provided as epoch seconds: {timestamp}"
-                ) 
+                )
 
             # Sort tags for consistency
             sorted_tags = dict(sorted(tags.items()))
@@ -470,9 +460,7 @@ class InfluxDBStorage:
         # Only perform dumping if data structure tracking is enabled
         if config.WEATHERFLOW_COLLECTOR_ENABLE_INFLUXDB_DATA_STRUCTURE_TRACKING:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            directory = (
-                config.WEATHERFLOW_COLLECTOR_ENABLE_INFLUXDB_DATA_STRUCTURE_TRACKING_SAVE_DIR
-            )
+            directory = config.WEATHERFLOW_COLLECTOR_ENABLE_INFLUXDB_DATA_STRUCTURE_TRACKING_SAVE_DIR
             filename = f"{directory}/influxdb_relationships_{timestamp}.json"
 
             # Check if directory exists, if not, create it

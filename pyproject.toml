@@ -1,7 +1,7 @@
 [project]
-name = "weatherflow-collector"
+name = "wfcollector"
 version = "0.1.0"
-description = "Add your description here"
+description = "Collector utility for WeatherFlow weather stations"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -12,10 +12,48 @@ dependencies = [
     "pandas==2.2.3",
     "numpy==1.26.4",
     "pytz==2024.1",
-    "websockets==12.0"
+    "websockets==12.0",
 ]
-
 [dependency-groups]
-dev = [
-        "colorama"
-    ]
+dev = ["colorama", "pytest", "pytest-cov"]
+
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.setuptools.packages.find]
+where = ['src']
+include = ['wfcollector*']
+
+
+[tool.uv.workspace]
+members = ["wfcollector"]
+
+[tool.uv.sources]
+wfcollector = { workspace = true }
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q  --cov=wfcollector --cov-report=xml --cov-report=html"
+testpaths = ["test"]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.pyright]
+include = ["src", "test"]
+exclude = [
+    "docker_data",
+    "doc",
+    "**/node_modules",
+    "**/cdk.out",
+    "**/.pytest_cache",
+    "**/build",
+    "**/dist",
+    "**/.vscode",
+    "**/__pycache__",
+    "**/*.egg-info",
+    "**/*.ruff_cache",
+]

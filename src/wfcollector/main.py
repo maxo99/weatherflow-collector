@@ -3,9 +3,9 @@
 """
 WeatherFlow Collector Main Module
 
-This module serves as the entry point for the WeatherFlow Collector system, an advanced framework designed 
-to gather, process, and distribute meteorological data from various sources. It integrates several components 
-like WebSocket clients, REST API clients, and UDP listeners to collect data, which is then processed and 
+This module serves as the entry point for the WeatherFlow Collector system, an advanced framework designed
+to gather, process, and distribute meteorological data from various sources. It integrates several components
+like WebSocket clients, REST API clients, and UDP listeners to collect data, which is then processed and
 optionally forwarded to different endpoints such as InfluxDB, file systems, or WebSocket servers.
 
 Key Features:
@@ -16,7 +16,7 @@ Key Features:
 - Configurable data forwarding to InfluxDB, file systems, and WebSocket servers.
 
 Usage:
-The main module initializes various components based on the system configuration and orchestrates their 
+The main module initializes various components based on the system configuration and orchestrates their
 interaction. It sets up the event manager, data processors, and various clients (UDP, REST, WebSocket, etc.).
 It runs asynchronously, continuously managing the flow of data across the system.
 
@@ -41,7 +41,6 @@ Note:
 WeatherFlow Collector is specifically designed to work with WeatherFlow's meteorological data systems.
 Modifications may be required for use with other systems or data sources.
 """
-
 
 import asyncio
 import config
@@ -68,13 +67,11 @@ from handlers.system_metrics import SystemMetricsHandler
 from config_validator import validate_all
 
 
-
 # Initialize logger
 logger_main = logger.get_module_logger()
 
 
 async def setup_app():
-
     if not validate_all():
         logger_main.error(
             "Configuration validation failed. Check the logs for details."

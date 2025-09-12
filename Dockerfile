@@ -22,4 +22,4 @@ WORKDIR /app
 RUN uv sync
 
 # Run your Python script
-CMD ["uv", "run", "weatherflow-collector.py"]
+CMD ["uv", "run", "./src/wfcollector/main.py"]

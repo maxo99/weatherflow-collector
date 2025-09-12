@@ -44,7 +44,6 @@ import aiohttp
 import asyncio
 
 
-from logger import get_module_logger
 
 import time
 from functools import wraps
